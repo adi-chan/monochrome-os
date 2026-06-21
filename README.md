@@ -16,13 +16,13 @@ my personal quickshell setup for hyprland. it's clean, minimal, and heavily cust
 here are some previews of how it looks and feels in action.
 
 ### the bar
-<video src="showcase/bar_showcase.mp4" controls="controls" width="100%"></video>
+![the bar](showcase/bar_showcase.mp4)
 
 ### right panel & media player
-<video src="showcase/rightpanel_showcase.mp4" controls="controls" width="100%"></video>
+![right panel](showcase/rightpanel_showcase.mp4)
 
 ### date and time
-<video src="showcase/datetime_showcase.mp4" controls="controls" width="100%"></video>
+![date and time](showcase/datetime_showcase.mp4)
 
 ## requirements
 
