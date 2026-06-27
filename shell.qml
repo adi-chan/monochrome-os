@@ -5,6 +5,7 @@ import Quickshell
 import qs.bar
 import qs.bar.placeholders
 import qs.services
+import qs.modules
 
 ShellRoot {
     id: root
@@ -32,5 +33,14 @@ ShellRoot {
             required property var modelData
             targetScreen: modelData
         }
+    }
+    
+    // Add the Shortcut Wheel
+    ShortcutWheel {
+        // Overlay window on all screens or primary?
+        // PanelWindow automatically handles screen assignment, or we can use Variants.
+        // For a global launcher, let's use Variants to show it on all screens or we can just instantiate it.
+        // Wait, ShortcutWheel is a PanelWindow, it might need to know which screen to show on.
+        // If we don't specify, Quickshell usually picks the primary.
     }
 }

@@ -26,8 +26,9 @@ PopupWindow {
     property int contentH: 520
 
     // ===== Theme / Shadow =====
-    property color panelBg: "#000000"
-    property int panelRadius: 10
+    property color panelBg: "#d90c0c0c" // Neutral translucent dark grey
+    property color panelBorder: "#2a2a2a" // Neutral border
+    property int panelRadius: 16
     property int shadowPad: 10
     property real shadowOpacity: 0.28
     property real shadowBlur: 0.55
@@ -158,6 +159,8 @@ PopupWindow {
             anchors.fill: parent
             radius: pop.panelRadius
             color: pop.panelBg
+            border.width: 1
+            border.color: pop.panelBorder
             antialiasing: true
 
             layer.enabled: true
@@ -246,12 +249,25 @@ PopupWindow {
                     columnSpacing: Appearance.margin.large
                     rowSpacing: Appearance.margin.large
 
-                    Network { Layout.fillWidth: true; Layout.preferredHeight: 60 }
-                    Bluetooth { Layout.fillWidth: true; Layout.preferredHeight: 60 }
+                    Network { 
+                        id: networkCard
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 60
+                        onMenuRequested: networkMenu.openFrom(networkCard, pop)
+                    }
+                    Bluetooth { 
+                        id: bluetoothCard
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 60
+                        onMenuRequested: bluetoothMenu.openFrom(bluetoothCard, pop)
+                    }
                    // Inhibitor { Layout.fillWidth: true; Layout.preferredHeight: 60 }
                     System_Details { Layout.fillWidth: true; Layout.preferredHeight: 60 }
                     QuickApps { Layout.fillWidth: true; Layout.preferredHeight: 60 }
                 }
+
+                NetworkMenu { id: networkMenu }
+                BluetoothMenu { id: bluetoothMenu }
 
                 Rectangle {
                     Layout.fillWidth: true

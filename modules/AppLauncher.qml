@@ -10,6 +10,7 @@ PanelWindow {
     id: pop
     property bool open: false
     property Item anchorItem: null
+    property int editSlotIndex: -1
 
     color: "transparent"
     
@@ -76,6 +77,33 @@ PanelWindow {
         }
     }
 
+    Process {
+        id: checkEditModeProc
+        command: ["cat", "/tmp/qs_edit_slot"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let idx = parseInt(text.trim());
+                if (!isNaN(idx)) {
+                    pop.editSlotIndex = idx;
+                    deleteEditModeProc.running = true;
+                } else {
+                    pop.editSlotIndex = -1;
+                }
+            }
+        }
+    }
+
+    Process {
+        id: deleteEditModeProc
+        command: ["rm", "-f", "/tmp/qs_edit_slot"]
+        running: false
+    }
+
+    Process {
+        id: saveWheelSlotProc
+        running: false
+    }
+
 
 
     property var allApps: []
@@ -110,6 +138,10 @@ PanelWindow {
 
     onOpenChanged: {
         if (open) {
+            pop.editSlotIndex = -1; // Default
+            checkEditModeProc.running = false;
+            checkEditModeProc.running = true;
+            
             searchInput.forceActiveFocus();
             updateAppsProc.running = false;
             updateAppsProc.running = true;
@@ -186,8 +218,14 @@ PanelWindow {
                             event.accepted = true;
                         } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                             if (appView.currentIndex >= 0 && appView.currentIndex < pop.filteredApps.length) {
-                                launchProc.command = ["hyprctl", "dispatch", "exec", pop.filteredApps[appView.currentIndex].exec];
-                                launchProc.running = true;
+                                let app = pop.filteredApps[appView.currentIndex];
+                                if (pop.editSlotIndex !== -1) {
+                                    saveWheelSlotProc.command = ["python3", "/home/nick/.config/quickshell/scripts/update_wheel_slot.py", pop.editSlotIndex.toString(), app.name, app.exec, app.icon || ""];
+                                    saveWheelSlotProc.running = true;
+                                } else {
+                                    launchProc.command = ["hyprctl", "dispatch", "exec", app.exec];
+                                    launchProc.running = true;
+                                }
                                 pop.open = false;
                             }
                             event.accepted = true;
@@ -235,11 +273,11 @@ PanelWindow {
                             
                             Text {
                                 anchors.centerIn: parent
-                                text: modelData.name ? modelData.name.charAt(0) : "?"
+                                text: modelData.icon && modelData.icon.match(/[^\x00-\x7F]/) ? modelData.icon : (modelData.name ? modelData.name.charAt(0) : "?")
                                 color: appView.currentIndex === index ? "#ffffff" : "#999999"
                                 font.pixelSize: 16
                                 font.bold: true
-                                visible: appIcon.status === Image.Error || appIcon.status === Image.Null || !modelData.icon
+                                visible: appIcon.status === Image.Error || appIcon.status === Image.Null || !modelData.icon || (modelData.icon && modelData.icon.match(/[^\x00-\x7F]/))
                             }
 
                             Image {
@@ -248,10 +286,9 @@ PanelWindow {
                                 width: 24
                                 height: 24
                                 sourceSize: Qt.size(24, 24)
-                                source: modelData.icon ? (modelData.icon.startsWith("/") ? "file://" + modelData.icon : "image://icon/" + modelData.icon) : ""
-                                visible: status === Image.Ready && modelData.icon
+                                source: modelData.icon && !modelData.icon.match(/[^\x00-\x7F]/) ? (modelData.icon.startsWith("/") ? "file://" + modelData.icon : "image://icon/" + modelData.icon) : ""
+                                visible: status === Image.Ready && modelData.icon && !modelData.icon.match(/[^\x00-\x7F]/)
                                 onStatusChanged: {
-                                    // if it errors, the Text element becomes visible automatically
                                 }
                             }
                         }
@@ -287,8 +324,14 @@ PanelWindow {
                         onEntered: appView.currentIndex = index
                         onClicked: {
                             appView.currentIndex = index;
-                            launchProc.command = ["hyprctl", "dispatch", "exec", modelData.exec];
-                            launchProc.running = true;
+                            let app = modelData;
+                            if (pop.editSlotIndex !== -1) {
+                                saveWheelSlotProc.command = ["python3", "/home/nick/.config/quickshell/scripts/update_wheel_slot.py", pop.editSlotIndex.toString(), app.name, app.exec, app.icon || ""];
+                                saveWheelSlotProc.running = true;
+                            } else {
+                                launchProc.command = ["hyprctl", "dispatch", "exec", app.exec];
+                                launchProc.running = true;
+                            }
                             pop.open = false;
                         }
                     }

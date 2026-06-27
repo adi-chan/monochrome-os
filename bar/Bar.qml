@@ -62,6 +62,8 @@ PanelWindow {
       Battery {
           id: battery
       }
+      
+      NotifButton { Layout.alignment: Qt.AlignVCenter }
 
 
         RightBtn { Layout.alignment: Qt.AlignVCenter }

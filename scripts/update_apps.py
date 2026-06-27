@@ -25,22 +25,24 @@ def get_apps():
                             if entry.get('Type', '') != 'Application':
                                 continue
                             
+                            name = entry.get('Name', '')
                             categories = entry.get('Categories', '')
-                            if any(x in categories for x in ['Settings', 'System', 'Utility', 'ConsoleOnly']):
+                            is_terminal = entry.get('Terminal', 'false').lower() == 'true'
+                            if any(x in categories for x in ['Settings', 'System', 'Utility', 'ConsoleOnly']) and 'bluetooth' not in name.lower():
                                 # Allow some exceptions if needed, but filter out most junk
                                 if 'System' in categories and 'Emulator' not in categories and 'FileManager' not in categories:
                                     continue
-                                if 'Utility' in categories and 'TextEditor' not in categories and 'Archiving' not in categories:
+                                if 'Utility' in categories and 'TextEditor' not in categories and 'Archiving' not in categories and not is_terminal:
                                     continue
                                 if 'Settings' in categories:
                                     continue
-
-                            name = entry.get('Name', '')
                             if not name or 'Avahi' in name or 'Hardware Locality' in name:
                                 continue
                             exec_cmd = entry.get('Exec', '').split('%')[0].strip()
                             if not exec_cmd:
                                 continue
+                            if is_terminal:
+                                exec_cmd = f"foot -e {exec_cmd}"
                             icon = entry.get('Icon', '')
                             desc = entry.get('Comment', '')
                             apps.append({

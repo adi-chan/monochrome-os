@@ -12,28 +12,28 @@ Item {
     implicitHeight: 60
     Layout.fillWidth: true
 
-    property var onActivate: function() {}
+    signal menuRequested()
 
     readonly property bool isConnected: Services.Network.connected
     property bool wifiEnabled: true
 
     // Direct bindings to Theme properties - 3 states: connected/disconnected/off
     readonly property color bgColor: {
-        if (!wifiEnabled) return "#000000"
-        return isConnected ? "#b4befe" : "#F38BA8"
+        if (!wifiEnabled) return "#0c0c0c"
+        return isConnected ? "#2a2a2a" : "#1a1a1a"
     }
-    readonly property color borderColor: "#625454"
+    readonly property color borderColor: "#333333"
     readonly property color iconColor: {
-        if (!wifiEnabled) return "#CDD6F4"
-        return isConnected ? "#1E1E2E" : "#ffffff"
+        if (!wifiEnabled) return "#585b70"
+        return isConnected ? "#cdd6f4" : "#a6adc8"
     }
     readonly property color titleColor: {
-        if (!wifiEnabled) return "#CDD6F4"
-        return isConnected ? "#1E1E2E" : "#ffffff"
+        if (!wifiEnabled) return "#585b70"
+        return isConnected ? "#cdd6f4" : "#a6adc8"
     }
     readonly property color subtitleColor: {
-        if (!wifiEnabled) return "#ffffff"
-        return isConnected ? "#000000" : "#000000"
+        if (!wifiEnabled) return "#45475a"
+        return isConnected ? "#bac2de" : "#7f849c"
     }
 
 Component.onCompleted: {
@@ -145,11 +145,7 @@ Component.onCompleted: {
             onPressed: card.pressed = true
             onReleased: card.pressed = false
             onClicked: {
-                wifiToggleProc.running = false
-                wifiToggleProc.running = true
-                wifiStateProc.running = false
-                wifiStateProc.running = true
-                root.onActivate()
+                root.menuRequested()
             }
         }
     }

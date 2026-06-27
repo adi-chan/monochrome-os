@@ -24,12 +24,10 @@ Popup {
     property string statusText: ""
     property bool busy: false
 
-    // device row fields:
-    // name, mac, connected, paired, trusted
-    ListModel { id: devModel }
+    ListModel { id: netModel }
 
     function openFrom(anchorItem) {
-        // Use anchor's visual parent for correct QQuickItem
+        // Use the anchor's visual parent as the popup's parent for correct QQuickItem type
         if (anchorItem && anchorItem.parent) {
             menu.parent = anchorItem.parent
         }
@@ -45,82 +43,65 @@ Popup {
 
     function refresh() {
         statusText = ""
-        devModel.clear()
+        netModel.clear()
         listProc.running = false
         listProc.running = true
     }
 
-    function runBt(cmd) {
-        // one-at-a-time to keep things sane
+    function connectWifi(ssid) {
+        if (!ssid || busy) return
         busy = true
-        statusText = "Working…"
-        actionProc.command = ["bash", "-lc", cmd + " 2>/dev/null || true"]
+        statusText = "Connecting to " + ssid + "..."
+        actionProc.command = ["bash", "-lc", "nmcli dev wifi connect '" + ssid.replace(/'/g, "'\\''") + "'"]
         actionProc.running = false
         actionProc.running = true
     }
 
-    function connectFlow(mac, paired, connected) {
-        if (!mac || busy) return
-
-        if (connected) {
-            runBt("bluetoothctl disconnect " + mac)
-            return
-        }
-
-        // If paired: connect
-        if (paired) {
-            runBt("bluetoothctl connect " + mac)
-            return
-        }
-
-        // If not paired: pair + trust + connect (best-effort)
-        runBt([
-            "bluetoothctl pair " + mac,
-            "bluetoothctl trust " + mac,
-            "bluetoothctl connect " + mac
-        ].join(" && "))
+    function wifiIcon(strength, isSecured) {
+        let icon = "󰤟"
+        if (strength >= 75) icon = "󰤨"
+        else if (strength >= 50) icon = "󰤥"
+        else if (strength >= 25) icon = "󰤢"
+        return icon
     }
 
-    // List devices and their properties
     Process {
         id: listProc
-        command: ["bash", "-lc",
-            // Get paired devices list first; then for each, pull info (Connected/Paired/Trusted/Name)
-            "bluetoothctl devices paired | awk '{print $2}' | while read mac; do " +
-            "  info=$(bluetoothctl info $mac); " +
-            "  name=$(echo \"$info\" | sed -n 's/^\\s*Name: //p' | head -n1); " +
-            "  conn=$(echo \"$info\" | grep -q \"Connected: yes\" && echo yes || echo no); " +
-            "  pair=$(echo \"$info\" | grep -q \"Paired: yes\" && echo yes || echo no); " +
-            "  trust=$(echo \"$info\" | grep -q \"Trusted: yes\" && echo yes || echo no); " +
-            "  echo \"$mac\\t${name:-Unknown}\\t$conn\\t$pair\\t$trust\"; " +
-            "done"
-        ]
+        command: ["bash", "-c", "nmcli -t -f ACTIVE,SSID,SIGNAL,SECURITY dev wifi"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0)
+                let addedSsids = {}
                 for (let i = 0; i < lines.length; i++) {
-                    const parts = lines[i].split("\t")
-                    const mac = (parts[0] || "").trim()
-                    const name = (parts[1] || "Unknown").trim()
-                    const connected = (parts[2] || "no").trim() === "yes"
-                    const paired = (parts[3] || "no").trim() === "yes"
-                    const trusted = (parts[4] || "no").trim() === "yes"
+                    const line = lines[i]
+                    const parts = line.replace(/\\:/g, "_").split(":")
+                    if (parts.length < 4) continue
+                    
+                    const active = (parts[0] || "").trim() === "yes"
+                    const ssid = (parts[1] || "").trim()
+                    const signal = parseInt((parts[2] || "0").trim())
+                    const security = (parts[3] || "").trim()
 
-                    if (!mac) continue
-                    devModel.append({ mac, name, connected, paired, trusted })
+                    if (!ssid || addedSsids[ssid]) continue
+                    addedSsids[ssid] = true
+
+                    netModel.append({ 
+                        ssid: ssid, 
+                        active: active, 
+                        signal: isNaN(signal) ? 0 : signal, 
+                        security: security 
+                    })
                 }
-                if (devModel.count === 0) statusText = "No paired devices."
+                if (netModel.count === 0) statusText = "No networks found."
             }
         }
     }
 
-    // Action runner (connect/disconnect/pair)
     Process {
         id: actionProc
         stdout: StdioCollector {
             onStreamFinished: {
                 const msg = text.trim()
-                // bluetoothctl often prints nothing on success; keep it short
                 if (msg) statusText = msg
             }
         }
@@ -148,7 +129,7 @@ Popup {
             spacing: 8
 
             Text {
-                text: "Bluetooth"
+                text: "Wi-Fi Networks"
                 color: menu.text
                 font.pixelSize: 14
                 font.weight: 700
@@ -205,7 +186,7 @@ Popup {
                 spacing: 6
 
                 Repeater {
-                    model: devModel
+                    model: netModel
 
                     Rectangle {
                         width: parent.width
@@ -222,12 +203,12 @@ Popup {
                             spacing: 10
 
                             Text {
-                                text: model.connected ? "󰂱" : "󰂯"
+                                text: wifiIcon(model.signal, model.security !== "")
                                 font.family: "Hack Nerd Font"
                                 font.pixelSize: 18
                                 color: menu.text
                                 Layout.alignment: Qt.AlignVCenter
-                                opacity: model.connected ? 1.0 : 0.9
+                                opacity: model.active ? 1.0 : 0.9
                             }
 
                             ColumnLayout {
@@ -235,16 +216,16 @@ Popup {
                                 spacing: -2
 
                                 Text {
-                                    text: model.name
+                                    text: model.ssid
                                     color: menu.text
                                     font.pixelSize: 13
-                                    font.weight: model.connected ? 800 : 600
+                                    font.weight: model.active ? 800 : 600
                                     elide: Text.ElideRight
                                     Layout.fillWidth: true
                                 }
 
                                 Text {
-                                    text: model.connected ? "Connected" : (model.paired ? "Paired" : "Not paired")
+                                    text: model.active ? "Connected" : (model.security ? model.security : "Open")
                                     color: menu.subtext
                                     font.pixelSize: 11
                                     elide: Text.ElideRight
@@ -253,7 +234,7 @@ Popup {
                             }
 
                             Text {
-                                text: model.connected ? "Disconnect" : "Connect"
+                                text: model.active ? "Connected" : "Connect"
                                 color: menu.subtext
                                 font.pixelSize: 11
                                 opacity: 0.95
@@ -266,8 +247,8 @@ Popup {
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            enabled: !menu.busy
-                            onClicked: menu.connectFlow(model.mac, model.paired, model.connected)
+                            enabled: !menu.busy && !model.active
+                            onClicked: menu.connectWifi(model.ssid)
                         }
                     }
                 }

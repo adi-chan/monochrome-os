@@ -7,8 +7,8 @@ import qs.services as Services
 
 Item {
     id: root
-    implicitHeight: 28
-    implicitWidth: 210
+    implicitHeight: 32
+    implicitWidth: 260
     Layout.preferredWidth: implicitWidth
     Layout.alignment: Qt.AlignVCenter
 
@@ -33,6 +33,8 @@ Item {
     property var onOpen: function() { detailsOpen = !detailsOpen }
 
     Process { id: playPauseProc; command: ["playerctl", "play-pause"] }
+    Process { id: prevProc; command: ["playerctl", "previous"] }
+    Process { id: nextProc; command: ["playerctl", "next"] }
 
     Process {
         id: statusProc
@@ -95,83 +97,140 @@ Item {
             z: 1
 
             Rectangle {
-                id: btn
-                width: 20
-                height: 20
-                radius: 20
+                id: controlPill
+                Layout.preferredWidth: 86
+                Layout.preferredHeight: 24
+                radius: 12
                 color: root.btnBg
                 border.width: 1
                 border.color: root.borderColor
                 Layout.alignment: Qt.AlignVCenter
                 Behavior on color { ColorAnimation { duration: 120 } }
 
-                MouseArea {
-                    id: btnMouse
+                RowLayout {
                     anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    preventStealing: true
-                    propagateComposedEvents: false
-                    onClicked: {
-                        playPauseProc.running = false
-                        playPauseProc.running = true
-                        statusProc.running = false
-                        statusProc.running = true
-                    }
-                }
+                    anchors.margins: 4
+                    spacing: 0
 
-                Text {
-                    anchors.centerIn: parent
-                    text: root.isPlaying ? "󰏤" : "󰐊"
-                    font.family: "JetBrains Mono"
-                    font.pixelSize: 14
-                    lineHeightMode: Text.FixedHeight
-                    lineHeight: btn.height
-                    verticalAlignment: Text.AlignVCenter
-                    horizontalAlignment: Text.AlignHCenter
-                    x: Math.round(-0.5)
-                    y: root.isPlaying ? Math.round(-0.5) : 0
-                    color: root.text
-                    opacity: 0.95
-                    visible: !root.isPlaying || btnMouse.containsMouse
-                }
-
-                // Animated Equalizer inside the button
-                Row {
-                    id: eqIcon
-                    anchors.centerIn: parent
-                    spacing: 2
-                    visible: root.isPlaying && !btnMouse.containsMouse
-                    height: 10
-                    
-                    Repeater {
-                        model: 3
-                        Rectangle {
-                            width: 3
-                            height: 4
-                            radius: 1
+                    // Prev
+                    Item {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        Text {
+                            anchors.centerIn: parent
+                            text: "󰒮"
+                            font.family: "JetBrains Mono"
+                            font.pixelSize: 14
                             color: root.text
-                            anchors.bottom: parent.bottom
+                            opacity: prevMouse.containsMouse ? 1.0 : 0.6
+                        }
+                        MouseArea {
+                            id: prevMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            preventStealing: true
+                            propagateComposedEvents: false
+                            onClicked: {
+                                prevProc.running = false
+                                prevProc.running = true
+                            }
+                        }
+                    }
+
+                    // Play/Pause
+                    Item {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        Text {
+                            anchors.centerIn: parent
+                            text: root.isPlaying ? "󰏤" : "󰐊"
+                            font.family: "JetBrains Mono"
+                            font.pixelSize: 16
+                            color: root.text
+                            opacity: 0.95
+                            visible: !root.isPlaying || btnMouse.containsMouse
+                        }
+
+                        // Animated Equalizer inside the button
+                        Row {
+                            id: eqIcon
+                            anchors.centerIn: parent
+                            spacing: 2
+                            visible: root.isPlaying && !btnMouse.containsMouse
+                            height: 10
                             
-                            SequentialAnimation on height {
-                                running: root.isPlaying
-                                loops: Animation.Infinite
-                                
-                                NumberAnimation { 
-                                    to: index === 0 ? 10 : (index === 1 ? 6 : 8)
-                                    duration: 200 + (index * 50)
-                                    easing.type: Easing.InOutQuad 
+                            Repeater {
+                                model: 3
+                                Rectangle {
+                                    width: 3
+                                    height: 4
+                                    radius: 1
+                                    color: root.text
+                                    anchors.bottom: parent.bottom
+                                    
+                                    SequentialAnimation on height {
+                                        running: root.isPlaying
+                                        loops: Animation.Infinite
+                                        
+                                        NumberAnimation { 
+                                            to: index === 0 ? 10 : (index === 1 ? 6 : 8)
+                                            duration: 200 + (index * 50)
+                                            easing.type: Easing.InOutQuad 
+                                        }
+                                        NumberAnimation { 
+                                            to: 3
+                                            duration: 250 + (index * 30)
+                                            easing.type: Easing.InOutQuad 
+                                        }
+                                        NumberAnimation { 
+                                            to: index === 0 ? 5 : (index === 1 ? 10 : 7)
+                                            duration: 180 + (index * 40)
+                                            easing.type: Easing.InOutQuad 
+                                        }
+                                    }
                                 }
-                                NumberAnimation { 
-                                    to: 3
-                                    duration: 250 + (index * 30)
-                                    easing.type: Easing.InOutQuad 
-                                }
-                                NumberAnimation { 
-                                    to: index === 0 ? 5 : (index === 1 ? 10 : 7)
-                                    duration: 180 + (index * 40)
-                                    easing.type: Easing.InOutQuad 
-                                }
+                            }
+                        }
+
+                        MouseArea {
+                            id: btnMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            preventStealing: true
+                            propagateComposedEvents: false
+                            onClicked: {
+                                playPauseProc.running = false
+                                playPauseProc.running = true
+                                statusProc.running = false
+                                statusProc.running = true
+                            }
+                        }
+                    }
+
+                    // Next
+                    Item {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        Text {
+                            anchors.centerIn: parent
+                            text: "󰒭"
+                            font.family: "JetBrains Mono"
+                            font.pixelSize: 14
+                            color: root.text
+                            opacity: nextMouse.containsMouse ? 1.0 : 0.6
+                        }
+                        MouseArea {
+                            id: nextMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            preventStealing: true
+                            propagateComposedEvents: false
+                            onClicked: {
+                                nextProc.running = false
+                                nextProc.running = true
                             }
                         }
                     }

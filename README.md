@@ -1,42 +1,45 @@
-# quickshell config
+# Quickshell Config for Hyprland
 
-my personal quickshell setup for hyprland. it's clean, minimal, and heavily customized to fit my workflow. it replaces the standard waybar and rofi setup with something much more cohesive.
+A highly customized and animated desktop shell environment built with [Quickshell](https://outfoxxed.me/quickshell/) for Hyprland.
 
-## features
+## Features
 
-* **right panel:** a unified control center holding everything important. handles network, bluetooth, volume, brightness, and system stats (cpu/ram).
-* **dynamic app launcher:** opens instantly with `win + r`. it automatically scans the system and flatpak directories in the background every time it's opened to keep the app list perfectly synced.
-* **media player:** integrated directly into the panel. features a slick bouncing equalizer animation inside the play button that only shows up when music is actually playing.
-* **battery animation:** features a smooth, liquid-like filling animation while charging. 
-* **date & time panel:** clean layout for tracking time without cluttering the main bar.
-* **no weather clutter:** removed the weather module because i simply don't use it.
+- **Shortcut Wheel**: A beautifully animated, radial "hold-to-open" app launcher.
+  - **Zero-Click Edit Mode**: Hold the shortcut key, hover the center ring for 1 second, and simply release on an app slot to hot-swap it.
+  - Native support for dynamic app replacement via an intuitive search menu.
+  - Monochrome emoji support for clean typography-based icons.
+  - Silky smooth scale-up hover animations with HD mipmapping.
+- **App Launcher**: A centered, fast search overlay for launching applications.
+- **Notification Center**: Drop-down panel showcasing recent notifications via Dunst, featuring an unread badge indicator, sound jingles, and smooth fade-in animations.
+- **Control Panel**: Quick access to network, bluetooth, audio, and quick scripts.
+- **Top Bar**: A clean, minimalistic status bar displaying workspaces, active window, and system tray.
 
-## showcase
+## Requirements
 
-here are some previews of how it looks and feels in action.
+- [Quickshell](https://outfoxxed.me/quickshell/)
+- [Hyprland](https://hyprland.org/)
+- `python3` (for app parsing scripts)
+- `dunst` (for notifications)
+- `pw-play` (for audio jingles)
 
-### the bar
-![the bar](showcase/bar_showcase.mp4)
+## Installation
 
-### right panel & media player
-![right panel](showcase/rightpanel_showcase.mp4)
+1. Clone this repository into your config directory:
+   ```bash
+   git clone https://github.com/yourusername/quickshell-config ~/.config/quickshell
+   ```
 
-### date and time
-![date and time](showcase/datetime_showcase.mp4)
+2. Add the following to your `hyprland.conf`:
+   ```conf
+   # Launch Quickshell
+   exec-once = quickshell
 
-## requirements
+   # Bind Shortcut Wheel (Hold to open)
+   bind = SUPER, Tab, exec, sh -c 'touch /tmp/qs_wheel_holding; sleep 0.15; if [ -f /tmp/qs_wheel_holding ]; then touch /tmp/qs_wheel_open; fi'
+   bindrt = SUPER, Tab, exec, rm -f /tmp/qs_wheel_holding /tmp/qs_wheel_open
+   ```
 
-* hyprland
-* quickshell
-* playerctl (for media player)
-* python3 (for the app launcher syncing script)
-* nerd fonts (for icons)
+3. Reload Quickshell.
 
-## installation
-
-clone this into your config folder:
-```bash
-git clone git@github.com:YourUsername/quickshell-config.git ~/.config/quickshell
-```
-
-reload quickshell and you're good to go.
+## Note on App Icons
+The app launcher and shortcut wheel dynamically scan your `.desktop` files. Emojis and text-based symbols (like `♫`) are fully supported and will automatically adapt to your theme's typography and color settings!

@@ -1,0 +1,50 @@
+[
+    {
+        "name": "Zen Browser",
+        "exec": "/home/nick/.local/bin/zen",
+        "icon": "app.zen_browser.zen",
+        "desc": "Web browser"
+    },
+    {
+        "name": "Foot",
+        "exec": "foot",
+        "icon": "foot",
+        "desc": "Terminal emulator"
+    },
+    {
+        "name": "Thunar File Manager",
+        "exec": "thunar",
+        "icon": "org.xfce.thunar",
+        "desc": "File manager"
+    },
+    {
+        "name": "Code - OSS",
+        "exec": "code-oss",
+        "icon": "com.visualstudio.code.oss",
+        "desc": "Code Editing"
+    },
+    {
+        "name": "Discord",
+        "exec": "/usr/bin/discord",
+        "icon": "discord",
+        "desc": "Voice and text chat"
+    },
+    {
+        "name": "An Anime Game Launcher",
+        "exec": "/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=moe.launcher.an-anime-game-launcher moe.launcher.an-anime-game-launcher",
+        "icon": "moe.launcher.an-anime-game-launcher",
+        "desc": "Music player"
+    },
+    {
+        "name": "Brave",
+        "exec": "brave",
+        "icon": "brave-desktop",
+        "desc": "Streaming/Recording"
+    },
+    {
+        "name": "Steam",
+        "exec": "/usr/bin/steam",
+        "icon": "steam",
+        "desc": "Gaming platform"
+    }
+]
