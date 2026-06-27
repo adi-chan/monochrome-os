@@ -123,13 +123,13 @@ PanelWindow {
 
     Process {
         id: openSound
-        command: ["pw-play", "/home/nick/.config/quickshell/assets/wheel_open.mp3"]
+        command: ["paplay", "/home/nick/.config/quickshell/assets/wheel_open.mp3"]
         running: false
     }
     
     Process {
         id: selectSound
-        command: ["pw-play", "/home/nick/.config/quickshell/assets/wheel_select.mp3"]
+        command: ["paplay", "/home/nick/.config/quickshell/assets/wheel_select.mp3"]
         running: false
     }
 

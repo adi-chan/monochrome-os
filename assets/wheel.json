@@ -30,9 +30,9 @@
         "desc": "Voice and text chat"
     },
     {
-        "name": "An Anime Game Launcher",
-        "exec": "/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=moe.launcher.an-anime-game-launcher moe.launcher.an-anime-game-launcher",
-        "icon": "moe.launcher.an-anime-game-launcher",
+        "name": "Kew",
+        "exec": "foot -e kew",
+        "icon": "\u266b",
         "desc": "Music player"
     },
     {
