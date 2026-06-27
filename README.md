@@ -1,6 +1,6 @@
 # Quickshell Config for Hyprland
 
-A highly customized and animated desktop shell environment built with [Quickshell](https://outfoxxed.me/quickshell/) for Hyprland.
+A highly customized and animated desktop shell environment built with Quickshell for Hyprland.
 
 ## Features
 
@@ -16,8 +16,8 @@ A highly customized and animated desktop shell environment built with [Quickshel
 
 ## Requirements
 
-- [Quickshell](https://outfoxxed.me/quickshell/)
-- [Hyprland](https://hyprland.org/)
+- Quickshell
+- Hyprland
 - `python3` (for app parsing scripts)
 - `dunst` (for notifications)
 - `paplay` (for audio jingles)
