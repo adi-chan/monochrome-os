@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Qt.labs.folderlistmodel
 import Quickshell
 import Quickshell.Io
+import qs.services as Services
 
 Item {
     id: root
@@ -54,7 +55,7 @@ Item {
 
             Rectangle {
                 width: 36; height: 36
-                color: "#1e1e2e"
+                color: Services.Theme.bg
                 radius: 6
                 Text { anchors.centerIn: parent; text: "📁"; font.pixelSize: 18 }
                 MouseArea {
@@ -68,17 +69,17 @@ Item {
                 Layout.fillWidth: true
                 visible: root.showPathInput
                 height: 36
-                color: "#1e1e2e"
+                color: Services.Theme.bg
                 radius: 6
                 border.width: 1
-                border.color: pathInput.activeFocus ? "#7aa2f7" : "#45475a"
+                border.color: pathInput.activeFocus ? Services.Theme.primary : Services.Theme.border
 
                 TextInput {
                     id: pathInput
                     anchors.fill: parent
                     anchors.margins: 10
                     verticalAlignment: Qt.AlignVCenter
-                    color: "white"
+                    color: Services.Theme.text
                     font.pixelSize: 14
                     text: root.wallpaperDir
                     onAccepted: root.wallpaperDir = text
@@ -105,7 +106,7 @@ Item {
                     anchors.fill: parent
                     anchors.margins: 6
                     radius: 10
-                    color: "#1e1e2e"
+                    color: Services.Theme.bg
                     clip: true
 
                     scale: mouseArea.containsMouse ? 1.05 : 1.0

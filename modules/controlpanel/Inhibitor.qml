@@ -1,5 +1,6 @@
 // modules/controlpanel/IdleInhibitToggle.qml
 import QtQuick
+import qs.services as Services
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets

@@ -10,9 +10,9 @@ Rectangle {
     radius: height / 2
 
     // direct colors instead of Theme
-    color: "#000000"          // background color
+    color: Services.Theme.bgSolid          // background color
     border.width: 1
-    border.color: "#000000"   // border color
+    border.color: Services.Theme.bgSolid   // border color
     antialiasing: true
 
     implicitWidth: layoutRow.implicitWidth + 24
@@ -121,14 +121,14 @@ Rectangle {
             width: 8
             height: 8
             radius: 4
-            color: "#f38ba8" // Pastel red
+            color: Services.Theme.isDark ? "#f38ba8" : "#d32f2f" // Pastel red
             anchors.verticalCenter: parent.verticalCenter
             visible: root.hasPendingReminder
         }
 
         Text {
             id: timeText
-            color: "#ffffff"
+            color: Services.Theme.text
             font.pixelSize: 13
             font.family: "JetBrains Mono"
             font.weight: 800

@@ -1,6 +1,7 @@
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import qs.services as Services
 import QtQuick.Layouts
 import QtQuick.Effects
 import Quickshell.Wayland
@@ -140,7 +141,7 @@ PanelWindow {
             anchors.fill: parent
             radius: 16
             antialiasing: true
-            color: "#000000"
+            color: Services.Theme.bgSolid
 
             layer.enabled: true
             layer.effect: MultiEffect {
@@ -177,7 +178,7 @@ PanelWindow {
                     
                     Text {
                         text: "Notifications"
-                        color: "#ffffff"
+                        color: Services.Theme.text
                         font.pixelSize: 18
                         font.family: "JetBrains Mono"
                         font.weight: 800
@@ -188,12 +189,12 @@ PanelWindow {
                         width: 80
                         height: 28
                         radius: 6
-                        color: "#313244"
+                        color: Services.Theme.bg
                         
                         Text {
                             anchors.centerIn: parent
                             text: "Clear All"
-                            color: "#ffffff"
+                            color: Services.Theme.text
                             font.pixelSize: 12
                             font.family: "JetBrains Mono"
                         }
@@ -211,7 +212,7 @@ PanelWindow {
                 Rectangle {
                     Layout.fillWidth: true
                     height: 1
-                    color: "#313244"
+                    color: Services.Theme.bg
                     opacity: 0.7
                 }
 
@@ -228,7 +229,7 @@ PanelWindow {
                         visible: listView.count === 0
                         anchors.centerIn: parent
                         text: "No notifications"
-                        color: "#a6adc8"
+                        color: Services.Theme.subtext
                         font.pixelSize: 14
                         font.family: "JetBrains Mono"
                     }
@@ -237,8 +238,8 @@ PanelWindow {
                         width: listView.width
                         height: contentCol.implicitHeight + 24
                         radius: 8
-                        color: "#11111b"
-                        border.color: "#313244"
+                        color: Services.Theme.bg
+                        border.color: Services.Theme.bg
                         border.width: 1
                         
                         MouseArea {
@@ -291,14 +292,14 @@ PanelWindow {
                                 
                                 Text {
                                     text: model.appname
-                                    color: "#bac2de"
+                                    color: Services.Theme.subtext
                                     font.pixelSize: 11
                                     font.family: "JetBrains Mono"
                                 }
                                 
                                 Text {
                                     text: model.summary
-                                    color: "#ffffff"
+                                    color: Services.Theme.text
                                     font.pixelSize: 14
                                     font.bold: true
                                     font.family: "JetBrains Mono"
@@ -308,7 +309,7 @@ PanelWindow {
                                 
                                 Text {
                                     text: model.body.replace(/<[^>]*>?/gm, '') // Strip basic HTML if any
-                                    color: "#a6adc8"
+                                    color: Services.Theme.subtext
                                     font.pixelSize: 13
                                     font.family: "JetBrains Mono"
                                     wrapMode: Text.Wrap

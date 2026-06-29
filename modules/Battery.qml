@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Widgets
+import qs.services as Services
 
 Item {
     id: root
@@ -21,11 +22,11 @@ Item {
 
     property bool open: false
 
-    property color normalFillColor: "#212721"
+    property color normalFillColor: Services.Theme.isDark ? "#212721" : "#d0d0d0"
     property color lowFillColor: "#f44336"
     property color chargingFillColor: "#48ed7f"
-    property color bgColor: "#000000"
-    property color textColor: "#ffffff"
+    property color bgColor: Services.Theme.bgSolid
+    property color textColor: Services.Theme.text
 
     property int batteryPercent: 100
     property string batteryStatus: "Unknown"

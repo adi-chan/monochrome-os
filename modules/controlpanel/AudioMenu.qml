@@ -1,37 +1,48 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
+import Quickshell.Io
 import Quickshell.Services.Pipewire
 import qs.services as Services
+import "../../services" as ServicesUI
 
 Popup {
     id: pop
 
     opacity: 0
-
+    
+    // Smooth popup entrance animation
     enter: Transition {
-        NumberAnimation { property: "opacity"; from: 0; to: 1; duration: 140; easing.type: Easing.OutCubic }
+        ParallelAnimation {
+            NumberAnimation { property: "opacity"; from: 0; to: 1; duration: 250; easing.type: Easing.OutExpo }
+            NumberAnimation { property: "scale"; from: 0.95; to: 1.0; duration: 250; easing.type: Easing.OutBack }
+            NumberAnimation { property: "y"; from: pop.y - 10; to: pop.y; duration: 250; easing.type: Easing.OutExpo }
+        }
     }
 
     exit: Transition {
-        NumberAnimation { property: "opacity"; from: 1; to: 0; duration: 120; easing.type: Easing.OutCubic }
+        ParallelAnimation {
+            NumberAnimation { property: "opacity"; from: 1; to: 0; duration: 200; easing.type: Easing.OutCubic }
+            NumberAnimation { property: "scale"; from: 1.0; to: 0.95; duration: 200; easing.type: Easing.OutCubic }
+        }
     }
 
     // ===== config =====
-    property int minWidth: 280
-    property int maxWidth: 320
-    property int maxListHeight: 240
+    property int minWidth: 320
+    property int maxWidth: 360
+    property int maxListHeight: 350
     property int edgeMargin: 6
 
     // theme
-    property color bg: "#000000"
-    property color border: "#000000"
-    property color text: "#ffffff"
-    property color subtext: "#ffffff"
-    property color accent: "#002fff"
+    property color bg: "#1e1e2e" // dark surface
+    property color border: "#313244"
+    property color text: "#cdd6f4"
+    property color subtext: "#a6adc8"
+    
     // internal
     property Item boundsItem: null
 
-    padding: 10
+    padding: 14
     width: minWidth
     modal: false
     focus: true
@@ -39,106 +50,94 @@ Popup {
 
     readonly property real contentW: pop.width - pop.leftPadding - pop.rightPadding
 
-    ListModel { id: sinkModel }
-
-    TextMetrics {
-        id: metrics
-        font.pixelSize: 13
+    ListModel { id: appsModel }
+    
+    Timer {
+        id: refreshTimer
+        interval: 1000
+        repeat: true
+        running: pop.visible
+        onTriggered: rebuild()
     }
 
     function clamp(n, lo, hi) { return Math.max(lo, Math.min(hi, n)) }
 
-    function nodeLabel(n) {
-        if (!n) return "Unknown"
-        return String(n.description || n.nick || n.name || n.id || "Unknown")
-    }
-
-    function isSink(n) {
-        const t = String(PwNodeType.toString?.(n.type) || PwNodeType[n.type])
-        return t === "AudioSink"
-    }
-
     function rebuild() {
-        sinkModel.clear()
-        const sinks = Services.Volume.devices.filter(isSink)
-        for (let i = 0; i < sinks.length; i++) {
-            const n = sinks[i]
-            sinkModel.append({ label: nodeLabel(n), node: n })
+        let clientNodes = Pipewire.nodes.values.filter(n => {
+            let type = String(PwNodeType.toString?.(n.type) || PwNodeType[n.type]);
+            let name = n.properties ? (n.properties["application.name"] || n.properties["media.name"] || n.properties["node.name"]) : null;
+            return n.audio && name && type !== "AudioSink" && type !== "AudioSource" && type !== "Video";
+        });
+        
+        let existingIds = [];
+        for (let i = 0; i < appsModel.count; i++) {
+            existingIds.push(appsModel.get(i).nodeId);
         }
-        computeWidth()
-    }
-
-    function computeWidth() {
-        // padding + delegate inner padding + dot + checkmark + spacing
-        const chrome =
-            (pop.leftPadding + pop.rightPadding) +
-            (12 * 2) +    // delegate left/right padding
-            8 + 10 +      // dot + spacing
-            18 + 12       // checkmark + breathing room
-
-        var w = pop.minWidth
-        for (let i = 0; i < sinkModel.count; i++) {
-            metrics.text = sinkModel.get(i).label
-            w = Math.max(w, Math.ceil(metrics.width + chrome))
+        
+        for (let n of clientNodes) {
+            let vol = n.audio.volume * 100.0;
+            let existingIdx = existingIds.indexOf(n.id);
+            if (existingIdx !== -1) {
+                appsModel.setProperty(existingIdx, "volume", vol);
+                existingIds.splice(existingIds.indexOf(n.id), 1);
+            } else {
+                appsModel.append({
+                    nodeId: n.id,
+                    appName: n.properties["application.name"] || n.properties["media.name"] || n.properties["node.name"] || "Unknown",
+                    volume: vol
+                });
+            }
         }
-        pop.width = clamp(w, pop.minWidth, pop.maxWidth)
+        
+        for (let i = appsModel.count - 1; i >= 0; i--) {
+            if (existingIds.includes(appsModel.get(i).nodeId)) {
+                appsModel.remove(i);
+            }
+        }
     }
 
     function positionFrom(anchorItem) {
         if (!anchorItem || !pop.parent) return
-
-        // anchor coords in popup parent coords
         var p = anchorItem.mapToItem(pop.parent, 0, anchorItem.height)
-
-        // right align under anchor
         var desiredX = Math.round(p.x + anchorItem.width - pop.width)
-
-        // clamp inside parent width
         var minX = pop.edgeMargin
         var maxX = Math.max(minX, Math.round(pop.parent.width - pop.width - pop.edgeMargin))
         pop.x = clamp(desiredX, minX, maxX)
-
         pop.y = Math.round(p.y + 6)
     }
 
-    // ✅ Call this from Volume.qml:
-    // audioMenu.openFrom(deviceBtn, root)
     function openFrom(anchorItem, bounds) {
         pop.boundsItem = bounds || anchorItem
         pop.parent = pop.boundsItem
-
         rebuild()
         positionFrom(anchorItem)
         pop.open()
     }
 
     background: Rectangle {
-        radius: 14
+        radius: 16
         color: pop.bg
         border.width: 1
         border.color: pop.border
     }
 
-    // also works if you just call pop.open()
     onAboutToShow: rebuild()
 
     Column {
         width: pop.contentW
-        spacing: 8
+        spacing: 12
 
         Text {
-            text: "Audio Output"
+            text: "App Mixer"
             color: pop.text
-            opacity: 0.95
-            font.pixelSize: 13
+            font.pixelSize: 15
+            font.bold: true
         }
 
         Rectangle {
             width: parent.width
             height: 1
-            radius: 1
-            color: "#313244"
-            opacity: 0.9
+            color: Services.Theme.bg
         }
 
         ListView {
@@ -146,82 +145,89 @@ Popup {
             width: parent.width
             implicitHeight: Math.min(pop.maxListHeight, contentHeight)
             clip: true
-            spacing: 6
-            model: sinkModel
+            spacing: 16
+            model: appsModel
 
-            delegate: Rectangle {
-                id: row
-                required property string label
-                required property var node
-
+            delegate: ColumnLayout {
                 width: list.width
-                height: 38
-                radius: 12
-                color: hoverArea.containsMouse ? pop.hover : "transparent"
-
-                readonly property bool current: (
-                    Services.Volume.defaultSpeaker && node
-                    && Services.Volume.defaultSpeaker.id === node.id
-                )
-
-                // inner padding
-                property int pad: 12
-
-                Rectangle {
-                    id: dot
-                    width: 8
-                    height: 8
-                    radius: 4
-                    color: row.current ? pop.accent : "#585b70"
-                    opacity: row.current ? 1.0 : 0.85
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.left: parent.left
-                    anchors.leftMargin: row.pad
+                spacing: 6
+                
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+                    Rectangle {
+                        width: 24
+                        height: 24
+                        radius: 6
+                        color: Services.Theme.bg
+                        Text {
+                            anchors.centerIn: parent
+                            text: model.appName ? model.appName.charAt(0).toUpperCase() : "?"
+                            color: Services.Theme.text
+                            font.pixelSize: 12
+                            font.bold: true
+                        }
+                    }
+                    Text {
+                        text: model.appName || "Unknown"
+                        color: pop.text
+                        font.pixelSize: 13
+                        elide: Text.ElideRight
+                        Layout.fillWidth: true
+                    }
                 }
-
-                Text {
-                    id: labelText
-                    text: row.label
-                    color: pop.text
-                    font.pixelSize: 13
-                    elide: Text.ElideRight
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.left: dot.right
-                    anchors.leftMargin: 10
-                    anchors.right: check.left
-                    anchors.rightMargin: 10
-                }
-
-                Text {
-                    id: check
-                    text: row.current ? "✓" : ""
-                    color: pop.text
-                    opacity: 0.9
-                    font.pixelSize: 14
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.right: parent.right
-                    anchors.rightMargin: row.pad
-                }
-
-                MouseArea {
-                    id: hoverArea
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        if (row.node) Services.Volume.setDefaultSpeaker(row.node)
-                        pop.close()
+                
+                ServicesUI.StyledSlider {
+                    id: appSlider
+                    Layout.fillWidth: true
+                    implicitHeight: 35
+                    from: 0
+                    to: 100
+                    stepSize: 1
+                    snapMode: Slider.SnapAlways
+                    
+                    colPrimary: "#ffffff"
+                    colSecondaryContainer: "#454559"
+                    handleBorderColor: "#313244"
+                    handleBorderWidth: 1
+                    trackHeightDiff: 15
+                    handleGap: 6
+                    trackNearHandleRadius: 2
+                    useAnim: true
+                    
+                    Binding {
+                        target: appSlider
+                        property: "value"
+                        value: model.volume
+                        when: !appSlider.pressed
+                    }
+                    
+                    Process { id: volProc }
+                    
+                    onUserMoved: (v) => {
+                        let node = Pipewire.nodes.values.find(n => n.id === model.nodeId);
+                        if (node && node.audio) node.audio.volume = v / 100.0;
+                    }
+                    
+                    onUserReleased: (v) => {
+                        let val = v / 100.0;
+                        volProc.command = ["wpctl", "set-volume", String(model.nodeId), val.toFixed(2)];
+                        volProc.running = false;
+                        volProc.running = true;
+                        
+                        let node = Pipewire.nodes.values.find(n => n.id === model.nodeId);
+                        if (node && node.audio) node.audio.volume = val;
                     }
                 }
             }
         }
 
         Text {
-            visible: sinkModel.count === 0
-            text: "No outputs found"
+            visible: appsModel.count === 0
+            text: "No apps playing audio"
             color: pop.subtext
-            font.pixelSize: 12
-            opacity: 0.9
+            font.pixelSize: 13
+            anchors.horizontalCenter: parent.horizontalCenter
         }
     }
 }

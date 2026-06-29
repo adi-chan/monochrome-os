@@ -1,5 +1,6 @@
 // modules/PowerMenu.qml
 import QtQuick
+import qs.services as Services
 import QtQuick.Layouts
 import QtQuick.Effects
 import Quickshell
@@ -264,7 +265,7 @@ PopupWindow {
         Rectangle {
             anchors.fill: parent
             radius: 12
-            color: "#ffffff"
+            color: Services.Theme.text
             opacity: hovered ? 0.06 : 0.0
             Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
         }

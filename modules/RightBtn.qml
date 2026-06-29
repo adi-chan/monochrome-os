@@ -9,7 +9,7 @@ Rectangle {
     id: root
     height: 28
     radius: height / 2
-    color: "#000000"
+    color: Services.Theme.bgSolid
     antialiasing: true
     implicitWidth: row.implicitWidth + 12
 
@@ -71,7 +71,7 @@ Rectangle {
             text: wifiIcon(Services.Network.connected, Services.Network.signalStrength)
             font.family: "Hack Nerd Font"
             font.pixelSize: 14
-            color: "#ffffff"
+            color: Services.Theme.text
             opacity: Services.Network.connected ? 1.0 : 0.75
             Layout.alignment: Qt.AlignVCenter
         }
@@ -80,7 +80,7 @@ Rectangle {
             text: ""
             font.family: "Hack Nerd Font"
             font.pixelSize: 14
-            color: "#ffffff"
+            color: Services.Theme.text
             opacity: 0.95
             Layout.alignment: Qt.AlignVCenter
         }
@@ -89,7 +89,7 @@ Rectangle {
             text: "󰃠 "
             font.family: "Hack Nerd Font"
             font.pixelSize: 14
-            color: "#ffffff"
+            color: Services.Theme.text
             opacity: 0.95
             Layout.alignment: Qt.AlignVCenter
         }

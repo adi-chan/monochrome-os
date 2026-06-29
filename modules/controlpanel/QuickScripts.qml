@@ -1,4 +1,5 @@
 import QtQuick
+import qs.services as Services
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
@@ -11,9 +12,9 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: 16
-        color: "#000000"
+        color: Services.Theme.bg
         border.width: 1
-        border.color: "#3a3a3a"
+        border.color: Services.Theme.border
 
         RowLayout {
             anchors.fill: parent
@@ -26,7 +27,7 @@ Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 radius: 12
-                color: mouse.containsMouse ? "#3a3a3a" : "transparent"
+                color: mouse.containsMouse ? Services.Theme.highlight : "transparent"
 
                 property string iconTxt: ""
                 property string cmd: ""
@@ -39,7 +40,7 @@ Item {
                     anchors.centerIn: parent
                     text: parent.iconTxt
                     font.pixelSize: 18
-                    color: mouse.containsMouse ? "#ffffff" : "#cdd6f4"
+                    color: Services.Theme.text
                     Behavior on color { ColorAnimation { duration: 150 } }
                 }
 

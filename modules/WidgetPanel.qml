@@ -16,6 +16,9 @@ PanelWindow {
     focusable: true
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
+    property color panelBg: Services.Theme.bg
+    property color panelBorder: Services.Theme.border
+
     property int pageIndex: 0
     property bool remindersExpanded: false
     property bool isOpen: false
@@ -119,7 +122,7 @@ PanelWindow {
             anchors.fill: parent
             radius: 16
             antialiasing: true
-            color: "#000000"
+            color: Services.Theme.bgSolid
 
             layer.enabled: true
             layer.effect: MultiEffect {
@@ -181,7 +184,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 anchors.verticalCenterOffset: topMenu.tabLabelVOffset
                                 text: "Dashboard"
-                                color: panel.pageIndex === 0 ? "#ffffff" : "#ffffff"
+                                color: panel.pageIndex === 0 ? Services.Theme.text : Services.Theme.subtext
                                 font.pixelSize: 13
                                 font.family: "JetBrains Mono"
                                 font.weight: panel.pageIndex === 0 ? 700 : 600
@@ -208,7 +211,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 anchors.verticalCenterOffset: topMenu.tabLabelVOffset
                                 text: "Wallpapers"
-                                color: panel.pageIndex === 1 ? "#ffffff" : "#ffffff"
+                                color: panel.pageIndex === 1 ? Services.Theme.text : Services.Theme.subtext
                                 font.pixelSize: 13
                                 font.family: "JetBrains Mono"
                                 font.weight: panel.pageIndex === 1 ? 700 : 600
@@ -228,7 +231,7 @@ PanelWindow {
                         anchors.right: parent.right
                         anchors.bottom: parent.bottom
                         height: 1
-                        color: "#313244"
+                        color: Services.Theme.border
                         opacity: 0.7
                     }
 
@@ -236,7 +239,7 @@ PanelWindow {
                         id: indicator
                         height: 2
                         radius: 2
-                        color: "#ffffff"
+                        color: Services.Theme.primary
                         y: topMenu.height - 2
 
                         readonly property real t: {
@@ -322,7 +325,7 @@ PanelWindow {
             Rectangle {
                 id: addReminderPopup
                 anchors.fill: parent
-                color: "#88000000"
+                color: Services.Theme.bgSolid
                 visible: false
                 opacity: visible ? 1.0 : 0.0
                 Behavior on opacity { NumberAnimation { duration: 200 } }
@@ -350,9 +353,12 @@ PanelWindow {
                     width: 300
                     height: 200
                     radius: 12
-                    color: "#2b2b2b"
-                    border.color: "#45475a"
+                    color: panelBg
+                    border.color: panelBorder
                     border.width: 1
+
+                    Behavior on color { ColorAnimation { duration: 200 } }
+                    Behavior on border.color { ColorAnimation { duration: 200 } }
 
                     ColumnLayout {
                         anchors.fill: parent
@@ -361,7 +367,7 @@ PanelWindow {
 
                         Text {
                             text: "Add Reminder (" + addReminderPopup.dVal.toString().padStart(2, '0') + "/" + (addReminderPopup.mVal + 1).toString().padStart(2, '0') + "/" + addReminderPopup.yVal + ")"
-                            color: "white"
+                            color: Services.Theme.text
                             font.pixelSize: 16
                             font.bold: true
                             font.family: "JetBrains Mono"
@@ -374,17 +380,17 @@ PanelWindow {
                             
                             Rectangle {
                                 width: 50; height: 36
-                                color: "#1e1e2e"
+                                color: Services.Theme.bg
                                 radius: 6
                                 border.width: 1
-                                border.color: hrInput.activeFocus ? "#7aa2f7" : "#45475a"
+                                border.color: hrInput.activeFocus ? Services.Theme.primary : Services.Theme.border
                                 
                                 TextInput {
                                     id: hrInput
                                     anchors.centerIn: parent
                                     font.pixelSize: 16
                                     font.family: "JetBrains Mono"
-                                    color: "white"
+                                    color: Services.Theme.text
                                     text: ""
                                     validator: IntValidator { bottom: 0; top: 23 }
                                     onActiveFocusChanged: if (activeFocus) selectAll()
@@ -399,21 +405,21 @@ PanelWindow {
                                 }
                             }
                             
-                            Text { text: ":"; color: "white"; font.pixelSize: 16; font.bold: true; font.family: "JetBrains Mono" }
+                            Text { text: ":"; color: Services.Theme.text; font.pixelSize: 16; font.bold: true; font.family: "JetBrains Mono" }
                             
                             Rectangle {
                                 width: 50; height: 36
-                                color: "#1e1e2e"
+                                color: Services.Theme.bg
                                 radius: 6
                                 border.width: 1
-                                border.color: minInput.activeFocus ? "#7aa2f7" : "#45475a"
+                                border.color: minInput.activeFocus ? Services.Theme.primary : Services.Theme.border
                                 
                                 TextInput {
                                     id: minInput
                                     anchors.centerIn: parent
                                     font.pixelSize: 16
                                     font.family: "JetBrains Mono"
-                                    color: "white"
+                                    color: Services.Theme.text
                                     text: ""
                                     validator: IntValidator { bottom: 0; top: 59 }
                                     onActiveFocusChanged: if (activeFocus) selectAll()
@@ -430,18 +436,18 @@ PanelWindow {
                             
                             Text {
                                 text: "(Scroll to set)"
-                                color: "#bac2de"
+                                color: Services.Theme.subtext
                                 font.pixelSize: 12
                                 Layout.leftMargin: 8
                             }
                         }
 
                         RowLayout {
-                            Text { text: "Title:"; color: "#ccc"; font.pixelSize: 13 }
+                            Text { text: "Title:"; color: Services.Theme.subtext; font.pixelSize: 13 }
                             TextInput {
                                 id: titleInput
                                 Layout.fillWidth: true
-                                color: "white"
+                                color: Services.Theme.text
                                 font.pixelSize: 14
                             }
                         }
@@ -451,13 +457,13 @@ PanelWindow {
                         RowLayout {
                             Item { Layout.fillWidth: true }
                             Rectangle {
-                                width: 80; height: 32; radius: 8; color: "#444"
-                                Text { anchors.centerIn: parent; text: "Cancel"; color: "white" }
+                                width: 80; height: 32; radius: 8; color: Services.Theme.secondaryContainer
+                                Text { anchors.centerIn: parent; text: "Cancel"; color: Services.Theme.text }
                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: addReminderPopup.visible = false }
                             }
                             Rectangle {
-                                width: 80; height: 32; radius: 8; color: "#7aa2f7"
-                                Text { anchors.centerIn: parent; text: "Save"; color: "#1e1e2e"; font.bold: true }
+                                width: 80; height: 32; radius: 8; color: Services.Theme.primary
+                                Text { anchors.centerIn: parent; text: "Save"; color: Services.Theme.bg; font.bold: true }
                                 MouseArea {
                                     anchors.fill: parent
                                     cursorShape: Qt.PointingHandCursor

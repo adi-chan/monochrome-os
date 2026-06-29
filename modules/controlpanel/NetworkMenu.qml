@@ -1,4 +1,5 @@
 import QtQuick
+import qs.services as Services
 import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell
@@ -143,7 +144,7 @@ Popup {
                 radius: 10
                 color: refreshMouse.pressed ? menu.btnPress : (refreshMouse.containsMouse ? menu.btnHover : menu.btnBg)
                 border.width: 1
-                border.color: "#45475a"
+                border.color: Services.Theme.border
                 Behavior on color { ColorAnimation { duration: 120 } }
 
                 Text {
@@ -194,7 +195,7 @@ Popup {
                         radius: 14
                         color: rowMouse.pressed ? menu.btnPress : (rowMouse.containsMouse ? menu.btnHover : menu.btnBg)
                         border.width: 1
-                        border.color: "#45475a"
+                        border.color: Services.Theme.border
                         Behavior on color { ColorAnimation { duration: 120 } }
 
                         RowLayout {

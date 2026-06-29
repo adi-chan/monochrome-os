@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
 import Quickshell.Io
+import qs.services as Services
 
 PanelWindow {
     id: pop
@@ -123,13 +124,13 @@ PanelWindow {
 
     Process {
         id: openSound
-        command: ["paplay", "/home/nick/.config/quickshell/assets/wheel_open.mp3"]
+        command: ["pw-play", "/home/nick/.config/quickshell/assets/wheel_open.mp3"]
         running: false
     }
     
     Process {
         id: selectSound
-        command: ["paplay", "/home/nick/.config/quickshell/assets/wheel_select.mp3"]
+        command: ["pw-play", "/home/nick/.config/quickshell/assets/wheel_select.mp3"]
         running: false
     }
 
@@ -196,8 +197,11 @@ PanelWindow {
             width: 500
             height: 500
             radius: 250
-            color: "#99000000" // Translucent dark background (blurs in Hyprland)
-            border.color: "#30ffffff"
+            color: Services.Theme.isDark ? "#99000000" : "#d9ffffff" // Translucent dark background
+            border.color: Services.Theme.border
+            
+            Behavior on color { ColorAnimation { duration: 200 } }
+            Behavior on border.color { ColorAnimation { duration: 200 } }
             border.width: 1
             
             scale: pop.open ? 1.0 : 0.85
@@ -213,14 +217,19 @@ PanelWindow {
                 height: 180
                 radius: 90
                 color: "transparent"
-                border.color: "#40ffffff"
+                border.color: Services.Theme.isDark ? "#40ffffff" : "#40000000"
                 border.width: 1
             }
 
     // Dividers
             Canvas {
+                id: dividersCanvas
                 anchors.fill: parent
                 anchors.margins: -40
+                
+                property bool isDark: Services.Theme.isDark
+                onIsDarkChanged: requestPaint()
+                
                 onPaint: {
                     var ctx = getContext("2d");
                     ctx.clearRect(0, 0, width, height);
@@ -231,8 +240,8 @@ PanelWindow {
                     
                     // Create a fading gradient from the inner circle to the outer tip
                     var grad = ctx.createRadialGradient(cx, cy, 90, cx, cy, 280);
-                    grad.addColorStop(0, "#40ffffff");
-                    grad.addColorStop(0.7, "#40ffffff");
+                    grad.addColorStop(0, Services.Theme.isDark ? "#40ffffff" : "#20000000");
+                    grad.addColorStop(0.7, Services.Theme.isDark ? "#40ffffff" : "#20000000");
                     grad.addColorStop(1, "transparent");
                     ctx.strokeStyle = grad;
                     
@@ -273,6 +282,9 @@ PanelWindow {
                     }
                 }
 
+                property bool isDark: Services.Theme.isDark
+                onIsDarkChanged: requestPaint()
+
                 Component.onCompleted: requestPaint()
 
                 onPaint: {
@@ -295,8 +307,8 @@ PanelWindow {
                     ctx.closePath();
                     
                     var grad = ctx.createRadialGradient(cx, cy, innerRadius, cx, cy, outerRadius);
-                    grad.addColorStop(0, "#10ffffff");
-                    grad.addColorStop(1, "#30ffffff");
+                    grad.addColorStop(0, Services.Theme.isDark ? "#10ffffff" : "#10000000");
+                    grad.addColorStop(1, Services.Theme.isDark ? "#30ffffff" : "#30000000");
                     ctx.fillStyle = grad;
                     ctx.fill();
                 }
@@ -307,8 +319,8 @@ PanelWindow {
                 width: 60
                 height: 60
                 radius: 30
-                color: pop.selectedIndex === -1 ? (pop.isEditing ? "#90ff3333" : "#60ffffff") : "transparent"
-                border.color: pop.isEditing ? "#ff3333" : "#80ffffff"
+                color: pop.selectedIndex === -1 ? (pop.isEditing ? "#90ff3333" : (Services.Theme.isDark ? "#60ffffff" : "#20000000")) : "transparent"
+                border.color: pop.isEditing ? "#ff3333" : (Services.Theme.isDark ? "#80ffffff" : "#80000000")
                 border.width: pop.isEditing ? 2 : 1
                 
                 scale: pop.selectedIndex === -1 ? 1.15 : 1.0
@@ -318,7 +330,8 @@ PanelWindow {
                 Text {
                     anchors.centerIn: parent
                     text: pop.isEditing ? "✖" : "✛" // Center crosshair icon
-                    color: "#ffffff"
+                    color: Services.Theme.text
+                    Behavior on color { ColorAnimation { duration: 200 } }
                     font.pixelSize: 24
                     opacity: 0.8
                     rotation: pop.isEditing ? 90 : 0
@@ -353,12 +366,13 @@ PanelWindow {
                             anchors.horizontalCenter: parent.horizontalCenter
                             width: 32
                             height: 32
-                            color: "transparent"
+                            color: Services.Theme.subtext
+                            Behavior on color { ColorAnimation { duration: 200 } }
                             
                             Text {
                                 anchors.centerIn: parent
                                 text: modelData.icon && modelData.icon.match(/[^\x00-\x7F]/) ? modelData.icon : (modelData.name ? modelData.name.charAt(0) : "?")
-                                color: pop.selectedIndex === index ? "#000000" : "#ffffff"
+                                color: pop.selectedIndex === index ? (Services.Theme.isDark ? "#000000" : "#ffffff") : Services.Theme.text
                                 font.pixelSize: 20
                                 font.bold: true
                                 visible: appIcon.status === Image.Error || appIcon.status === Image.Null || !modelData.icon || (modelData.icon && modelData.icon.match(/[^\x00-\x7F]/))
@@ -379,7 +393,7 @@ PanelWindow {
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: modelData.name || ""
-                            color: pop.selectedIndex === index ? "#000000" : "#ffffff"
+                            color: pop.selectedIndex === index ? (Services.Theme.isDark ? "#000000" : "#ffffff") : Services.Theme.text
                             font.pixelSize: 13
                             font.bold: true
                             width: 80

@@ -1,6 +1,7 @@
 // modules/Power.qml
 import QtQuick
 import Quickshell
+import qs.services as Services
 
 Item {
     id: root
@@ -20,7 +21,7 @@ Item {
     property url shutdownIcon: Qt.resolvedUrl("../assets/icons/shutdown.svg")
     
     // Theme
-    property color bg: "#000000"
+    property color bg: Services.Theme.bgSolid
     property int radius: 14
     
     // Hover/click animation

@@ -20,7 +20,7 @@ A highly customized and animated desktop shell environment built with Quickshell
 - Hyprland
 - `python3` (for app parsing scripts)
 - `dunst` (for notifications)
-- `paplay` (for audio jingles)
+- `pw-play` (for audio jingles)
 
 ## Installation
 

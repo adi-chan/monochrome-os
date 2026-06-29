@@ -11,12 +11,12 @@ Rectangle {
     antialiasing: true
     radius: 14
 
-    property color bgColor: "#2b2b2b"
-    property color textColor: "#ffffff"
-    property color mutedColor: "#555555"
-    property color headerColor: "#ffffff"
+    property color bgColor: Services.Theme.bg
+    property color textColor: Services.Theme.text
+    property color mutedColor: Services.Theme.subtext
+    property color headerColor: Services.Theme.text
     property color todayFill: "#ff3333"
-    property color todayText: "#1E1E2E"
+    property color todayText: Services.Theme.bgSolid
 
     color: bgColor
 
@@ -176,7 +176,7 @@ Rectangle {
                         width: Math.min(parent.width, parent.height) * 0.95
                         height: width
                         radius: 8
-                        color: dayMouse.containsMouse ? "#3a3c4e" : "transparent"
+                        color: dayMouse.containsMouse ? Services.Theme.highlight : "transparent"
                         antialiasing: true
                         
                         scale: dayMouse.pressed ? 0.9 : (dayMouse.containsMouse ? 1.05 : 1.0)

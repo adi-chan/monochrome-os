@@ -14,10 +14,10 @@ Item {
     implicitHeight: 56
 
     // ---- colors ----
-    property color textColor: "#ffffff"
-    property color colPrimary: "#b4befe"
-    property color colSecondaryContainer: "#413b3b"
-    property color handleBorderColor: "#413b3b"
+    property color textColor: Services.Theme.text
+    property color colPrimary: Services.Theme.primary
+    property color colSecondaryContainer: Services.Theme.secondaryContainer
+    property color handleBorderColor: Services.Theme.border
     property int handleBorderWidth: 1
 
     // ---- slider geometry ----
@@ -56,32 +56,13 @@ Item {
         uiValue = volToUi(audio.volume)
     }
 
+    signal sidePanelRequested()
+
     function toggleAudioMenu() {
-        const m = audioMenuLoader.item
-        if (!m) {
-            console.log("AudioMenu.qml not loaded (check path)")
-            return
-        }
-
-        // close always allowed
-        if (root.menuOpen || m.visible === true) {
-            if (m.close) m.close()
-            else if (m.visible !== undefined) m.visible = false
-            return
-        }
-
         if (!root.canOpenMenu) return
-
-        // open
-        if (m.openFrom) {
-            m.openFrom(deviceBtn, root)
-        } else {
-            var p = deviceBtn.mapToItem(root, 0, deviceBtn.height)
-            m.x = Math.round(p.x + deviceBtn.width - m.width)
-            m.y = Math.round(p.y + 6)
-            if (m.open) m.open()
-            else if (m.visible !== undefined) m.visible = true
-        }
+        root.sidePanelRequested()
+        // we leave menuOpen toggle logic to the parent if needed, or toggle here
+        root.menuOpen = !root.menuOpen
     }
 
     Timer {
@@ -155,13 +136,13 @@ Item {
                 height: 26
                 radius: 8
                 border.width: 1
-                border.color: "#413b3b"
+                border.color: Services.Theme.bg
                 Layout.alignment: Qt.AlignVCenter
 
                 property bool hovered: false
                 property bool pressed: false
 
-                color: "#413b3b"
+                color: Services.Theme.bg
                 Behavior on color { ColorAnimation { duration: 120 } }
 
                 Text {
@@ -169,7 +150,7 @@ Item {
                     text: "󰅂"
                     font.family: "Hack Nerd Font"
                     font.pixelSize: 16
-                    color: "#cdd6f4"
+                    color: Services.Theme.subtext
                     opacity: 0.95
                     rotation: root.menuOpen ? 90 : 0
                     transformOrigin: Item.Center
@@ -231,27 +212,5 @@ Item {
         }
     }
 
-    Loader {
-        id: audioMenuLoader
-        active: true
-        source: Qt.resolvedUrl("AudioMenu.qml")
-    }
 
-    Connections {
-        target: audioMenuLoader.item
-        ignoreUnknownSignals: true
-
-        function onOpened() {
-            root.menuOpen = true
-            // allow opening while open (doesn't matter much, but keeps state sane)
-            root.canOpenMenu = true
-            reopenCooldown.stop()
-        }
-
-        function onClosed() {
-            root.menuOpen = false
-            root.canOpenMenu = false
-            reopenCooldown.restart()
-        }
-    }
 }

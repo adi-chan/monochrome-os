@@ -18,13 +18,13 @@ PopupWindow {
     color: "transparent"
 
     property int cardRadius: 16
-    property color cardColor: "#000000"
-    property color textColor: "#ffffff"
-    property color subTextColor: "#bbbbbb"
-    property color accentColor: "#7aa2f7"
-    property color btnBg: "#2b2b2b"
-    property color borderColor: "#45475a"
-    property color coverFallback: "#3a3a3a"
+    property color cardColor: Services.Theme.bgSolid
+    property color textColor: Services.Theme.text
+    property color subTextColor: Services.Theme.subtext
+    property color accentColor: Services.Theme.primary
+    property color btnBg: Services.Theme.bg
+    property color borderColor: Services.Theme.border
+    property color coverFallback: Services.Theme.border
 
     property int shadowPad: 10
     property real shadowOpacity: 0.28

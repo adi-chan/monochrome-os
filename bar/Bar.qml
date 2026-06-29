@@ -1,6 +1,7 @@
 import Quickshell
 import Quickshell.Wayland
 import QtQuick
+import qs.services as Services
 import QtQuick.Effects
 import QtQuick.Layouts
 import qs.modules
@@ -65,6 +66,7 @@ PanelWindow {
       
       NotifButton { Layout.alignment: Qt.AlignVCenter }
 
+        ThemeToggleBtn { Layout.alignment: Qt.AlignVCenter }
 
         RightBtn { Layout.alignment: Qt.AlignVCenter }
         Power {

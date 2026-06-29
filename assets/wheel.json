@@ -42,9 +42,9 @@
         "desc": "Streaming/Recording"
     },
     {
-        "name": "Steam",
-        "exec": "/usr/bin/steam",
-        "icon": "steam",
+        "name": "Drawy",
+        "exec": "/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=drawy org.kde.drawy",
+        "icon": "org.kde.drawy",
         "desc": "Gaming platform"
     }
 ]

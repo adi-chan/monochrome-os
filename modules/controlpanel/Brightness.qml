@@ -12,10 +12,10 @@ Item {
     implicitHeight: 56
 
     // ---- colors (match your volume palette) ----
-    property color textColor: "#ffffff"
-    property color colPrimary: "#b4befe"
-    property color colSecondaryContainer: "#413b3b"
-    property color handleBorderColor: "#413b3b"
+    property color textColor: Services.Theme.text
+    property color colPrimary: Services.Theme.primary
+    property color colSecondaryContainer: Services.Theme.secondaryContainer
+    property color handleBorderColor: Services.Theme.border
     property int handleBorderWidth: 1
 
     // ---- slider geometry ----

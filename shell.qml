@@ -35,6 +35,9 @@ ShellRoot {
         }
     }
     
+    // Hot-Edge volume/brightness panel
+    EdgeMixer {}
+
     // Add the Shortcut Wheel
     ShortcutWheel {
         // Overlay window on all screens or primary?

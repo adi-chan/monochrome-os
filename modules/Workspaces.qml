@@ -1,7 +1,7 @@
 import Quickshell
 import Quickshell.Hyprland
 import QtQuick
-import qs.services
+import qs.services as Services
 
 Item {
     id: root
@@ -26,7 +26,7 @@ Item {
 
     Rectangle {
         id: bg
-        color: "#000000"
+        color: Services.Theme.bgSolid
         radius: height / 2
         anchors.centerIn: parent
 
@@ -38,7 +38,7 @@ Item {
             width: 24
             height: 24
             radius: 12
-            color: "#ff0000" // red af
+            color: Services.Theme.isDark ? "#ff0000" : "#d32f2f" // active red
             
             property int activeIdx: {
                 if (Hyprland.focusedWorkspace) {
@@ -94,7 +94,7 @@ Item {
                     Text {
                         anchors.centerIn: parent
                         text: wsBox.wsText
-                        color: wsBox.isFocused ? "#000000" : (wsBox.isOccupied ? "#ffffff" : "#666666")
+                        color: wsBox.isFocused ? (Services.Theme.isDark ? "#ffffff" : "#000000") : (wsBox.isOccupied ? Services.Theme.text : "#808080")
                         font.pixelSize: 13
                         font.weight: Font.Black
                         
@@ -106,7 +106,7 @@ Item {
                     Rectangle {
                         anchors.fill: parent
                         radius: parent.radius
-                        color: "#3e3f49"
+                        color: Services.Theme.bg
                         opacity: wsBox.hovered ? 0.18 : 0
                         Behavior on opacity { NumberAnimation { duration: 150 } }
                     }

@@ -1,4 +1,5 @@
 import QtQuick
+import qs.services as Services
 import Quickshell
 import Quickshell.Io
 import qs.modules
@@ -9,9 +10,9 @@ Rectangle {
     width: 32
     radius: height / 2
 
-    color: "#000000"
+    color: Services.Theme.bgSolid
     border.width: 1
-    border.color: "#000000"
+    border.color: Services.Theme.bgSolid
     antialiasing: true
 
     property bool hovered: false
@@ -33,7 +34,7 @@ Rectangle {
         Text {
             id: bellIcon
             anchors.centerIn: parent
-            color: "#ffffff"
+            color: Services.Theme.text
             font.pixelSize: 14
             font.family: "JetBrainsMono Nerd Font"
             text: "󰂚"
@@ -55,7 +56,7 @@ Rectangle {
             width: 6
             height: 6
             radius: 3
-            color: "#f38ba8" // Pastel red
+            color: Services.Theme.isDark ? "#f38ba8" : "#d32f2f" // Pastel red
             anchors.top: bellIcon.top
             anchors.right: bellIcon.right
             anchors.topMargin: -2

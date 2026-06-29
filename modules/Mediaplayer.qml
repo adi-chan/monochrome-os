@@ -13,10 +13,10 @@ Item {
     Layout.alignment: Qt.AlignVCenter
 
     // direct colors (replaced theme)
-    property color bg: "#000000"
-    property color text: "#ffffff"
-    property color btnBg: "#2b2b2b"
-    property color borderColor: "#3a3a3a"
+    property color bg: Services.Theme.bgSolid
+    property color text: Services.Theme.text
+    property color btnBg: Services.Theme.bg
+    property color borderColor: Services.Theme.border
 
     // whole-module button feedback
     property color cardHover: "#2f3042"

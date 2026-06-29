@@ -76,13 +76,13 @@ Singleton {
         if (path.startsWith("file://"))
             path = path.substring(7);
 
-        playAudio.command = ["paplay", path];
+        playAudio.command = ["pw-play", path];
         playAudio.running = true;
     }
 
     Process {
         id: playAudio
-        command: ["paplay"]
+        command: ["pw-play"]
     }
 
     PwObjectTracker {

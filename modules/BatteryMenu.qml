@@ -1,4 +1,5 @@
 import QtQuick
+import qs.services as Services
 import QtQuick.Layouts
 import QtQuick.Effects
 import Quickshell
@@ -92,7 +93,7 @@ PopupWindow {
         id: mainRect
         anchors.fill: parent
         radius: 16
-        color: "#000000"
+        color: Services.Theme.bgSolid
 
         y: pop.open ? 0 : -60
         opacity: pop.open ? 1.0 : 0.0
@@ -136,7 +137,7 @@ PopupWindow {
 
                 Text {
                     text: batteryPercent + "% "
-                    color: "white"
+                    color: Services.Theme.text
                     font.pixelSize: 34
                     font.family: "JetBrains Mono"
                     font.weight: 700
@@ -147,7 +148,7 @@ PopupWindow {
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
                     text: batteryStatus
-                    color: "white"
+                    color: Services.Theme.text
                     font.pixelSize: 14
                     font.bold: true
                 }
@@ -188,7 +189,7 @@ PopupWindow {
         height: 44
         radius: 12
 
-        color: active ? "#ffffff" : (mouse.containsMouse ? "#222222" : "#0f0f0f")
+        color: active ? Services.Theme.text : (mouse.containsMouse ? Services.Theme.highlight : Services.Theme.bg)
         border.width: 0
 
         scale: mouse.pressed ? 0.92 : (mouse.containsMouse ? 1.05 : 1.0)
@@ -200,7 +201,7 @@ PopupWindow {
             id: iconText
             anchors.centerIn: parent
             text: btn.icon
-            color: btn.active ? "#000000" : "white"
+            color: btn.active ? Services.Theme.bgSolid : Services.Theme.text
             font.pixelSize: 22
             font.bold: true
             scale: btn.active ? 1.25 : 1.0

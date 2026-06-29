@@ -1,5 +1,6 @@
 // qs/modules/FillerTile.qml
 import QtQuick
+import qs.services as Services
 import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell
@@ -51,9 +52,9 @@ Item {
         id: card
         anchors.fill: parent
         radius: 16
-        color: "#000000"
+        color: Services.Theme.bg
         border.width: 1
-        border.color: "#3a3a3a"
+        border.color: Services.Theme.border
 
         property bool hovered: false
         property bool pressed: false
@@ -71,7 +72,7 @@ Item {
                 width: 36
                 height: 36
                 radius: 18
-                color: "#3a3a3a"
+                color: Services.Theme.border
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
 
@@ -79,7 +80,7 @@ Item {
                     anchors.centerIn: parent
                     text: root.icon
                     font.pixelSize: 16
-                    color: "#cdd6f4"
+                    color: Services.Theme.text
                 }
             }
 
@@ -94,14 +95,14 @@ Item {
                     text: root.cpuUsage
                     font.pixelSize: 14
                     font.weight: 600
-                    color: "#ffffff"
+                    color: Services.Theme.text
                 }
 
                 Text {
                     text: root.ramUsage
                     font.pixelSize: 14
                     font.weight: 600
-                    color: "#aaaaaa"
+                    color: Services.Theme.text
                 }
             }
         }

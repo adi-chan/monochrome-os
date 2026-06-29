@@ -6,13 +6,16 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Widgets
-import qs.services
+import qs.services as Services
 import qs.modules
 import qs.modules.controlpanel
 
 PopupWindow {
     id: pop
 
+    // Content Colors
+    property color textMain: Services.Theme.text
+    property color textSub: Services.Theme.subtext
     property bool open: false
     property Item anchorItem: null
     property int gap: 6
@@ -23,11 +26,11 @@ PopupWindow {
 
     // ===== Size (content) =====
     property int contentW: 360
-    property int contentH: 520
+    property int contentH: 380
 
     // ===== Theme / Shadow =====
-    property color panelBg: "#d90c0c0c" // Neutral translucent dark grey
-    property color panelBorder: "#2a2a2a" // Neutral border
+    property color panelBg: Services.Theme.bg // Neutral dark grey
+    property color panelBorder: Services.Theme.border // Neutral border
     property int panelRadius: 16
     property int shadowPad: 10
     property real shadowOpacity: 0.28
@@ -158,9 +161,12 @@ PopupWindow {
         Rectangle {
             anchors.fill: parent
             radius: pop.panelRadius
-            color: pop.panelBg
+            color: panelBg
+            border.color: panelBorder
             border.width: 1
-            border.color: pop.panelBorder
+            
+            Behavior on color { ColorAnimation { duration: 200 } }
+            Behavior on border.color { ColorAnimation { duration: 200 } }
             antialiasing: true
 
             layer.enabled: true
@@ -204,8 +210,8 @@ PopupWindow {
                         spacing: 2
 
                         Text {
-                            text: "hello, " + SystemDetails.username
-                            color: "#ffffff"
+                            text: "hello, " + Services.SystemDetails.username
+                            color: Services.Theme.text
                             font.pixelSize: 22
                             font.weight: 600
                             font.family: "JetBrains Mono"
@@ -217,14 +223,14 @@ PopupWindow {
                             spacing: 8
 
                             Text {
-                                text: SystemDetails.osIcon
-                                color: "#ffffff"
+                                text: Services.SystemDetails.osIcon
+                                color: Services.Theme.text
                                 font.pixelSize: 18
                             }
 
                             Text {
-                                text: SystemDetails.uptime
-                                color: "#ffffff"
+                                text: Services.SystemDetails.uptime
+                                color: Services.Theme.text
                                 opacity: 0.85
                                 font.pixelSize: 14
                                 elide: Text.ElideRight
@@ -239,15 +245,14 @@ PopupWindow {
                 Rectangle {
                     Layout.fillWidth: true
                     height: 1
-                    color: "#000000"
-                    opacity: 0.9
+                    color: Services.Theme.border
                 }
 
                 GridLayout {
                     Layout.fillWidth: true
                     columns: 2
-                    columnSpacing: Appearance.margin.large
-                    rowSpacing: Appearance.margin.large
+                    columnSpacing: 10
+                    rowSpacing: 10
 
                     Network { 
                         id: networkCard
@@ -272,18 +277,7 @@ PopupWindow {
                 Rectangle {
                     Layout.fillWidth: true
                     height: 1
-                    color: "#000000"
-                    opacity: 0.9
-                }
-
-                Volume { Layout.fillWidth: true }
-                Brightness { Layout.fillWidth: true }
-
-                Rectangle {
-                    Layout.fillWidth: true
-                    height: 1
-                    color: "#000000"
-                    opacity: 0.9
+                    color: Services.Theme.border
                     Layout.topMargin: 10
                     Layout.bottomMargin: 10
                 }

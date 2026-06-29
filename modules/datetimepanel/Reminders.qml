@@ -9,7 +9,7 @@ import qs.services as Services
 Rectangle {
     id: root
     radius: 14
-    color: "#2b2b2b"
+    color: Services.Theme.bg
     antialiasing: true
 
     property bool expanded: false
@@ -21,7 +21,7 @@ Rectangle {
     property bool rimHovered: false
 
     border.width: rimHovered ? 2 : 0
-    border.color: "#45475a"
+    border.color: Services.Theme.border
     Behavior on border.width { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
 
     readonly property string configHome: {
@@ -128,7 +128,7 @@ Rectangle {
 
             Text {
                 text: "Reminders"
-                color: "#ffffff"
+                color: Services.Theme.text
                 font.pixelSize: 13
                 font.weight: 700
                 font.family: "Adwaita Sans"
@@ -140,7 +140,7 @@ Rectangle {
                 id: savedHint
                 text: "Saved"
                 opacity: 0.0
-                color: "#aaaaaa"
+                color: Services.Theme.subtext
                 font.pixelSize: 11
                 font.family: "Adwaita Sans"
                 Behavior on opacity { NumberAnimation { duration: 160 } }
@@ -159,7 +159,7 @@ Rectangle {
                 Text {
                     anchors.centerIn: parent
                     text: "•"
-                    color: "#cdd6f4"
+                    color: Services.Theme.subtext
                     font.pixelSize: 14
                     font.family: "Adwaita Sans"
                 }
@@ -193,7 +193,7 @@ Rectangle {
                 radius: 12
                 color: modelData.notified ? "#2b2b2b" : "#313244"
                 border.width: modelData.notified ? 0 : 1
-                border.color: "#45475a"
+                border.color: Services.Theme.border
 
                 RowLayout {
                     anchors.fill: parent
@@ -211,7 +211,7 @@ Rectangle {
                     ColumnLayout {
                         spacing: 4
                         Text { text: modelData.title; color: "white"; font.bold: true; font.pixelSize: 14; font.family: "Adwaita Sans" }
-                        Text { text: modelData.date + " at " + modelData.time; color: "#bac2de"; font.pixelSize: 11; font.family: "JetBrains Mono" }
+                        Text { text: modelData.date + " at " + modelData.time; color: Services.Theme.subtext; font.pixelSize: 11; font.family: "JetBrains Mono" }
                     }
 
                     Item { Layout.fillWidth: true }
@@ -219,9 +219,9 @@ Rectangle {
 
 
                     Rectangle {
-                        width: 28; height: 28; radius: 8; color: "#f38ba8"
+                        width: 28; height: 28; radius: 8; color: Services.Theme.text
                         opacity: delMouse.containsMouse ? 1.0 : 0.7
-                        Text { anchors.centerIn: parent; text: "✕"; color: "#1e1e2e"; font.pixelSize: 14; font.weight: 700 }
+                        Text { anchors.centerIn: parent; text: "✕"; color: Services.Theme.bg; font.pixelSize: 14; font.weight: 700 }
                         MouseArea {
                             id: delMouse
                             anchors.fill: parent
@@ -237,7 +237,7 @@ Rectangle {
         Rectangle {
             Layout.fillWidth: true
             height: 1
-            color: "#45475a"
+            color: Services.Theme.text
             visible: structuredList.count > 0
         }
 
@@ -260,7 +260,7 @@ Rectangle {
                 wrapMode: TextEdit.Wrap
                 selectByMouse: true
 
-                color: "#cdd6f4"
+                color: Services.Theme.subtext
                 placeholderTextColor: "#888888"
                 font.family: "Adwaita Sans"
                 font.pixelSize: 12

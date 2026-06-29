@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
 import Quickshell.Io
+import qs.services as Services
 
 PanelWindow {
     id: pop
@@ -164,9 +165,12 @@ PanelWindow {
         height: pop.open ? 420 : (anchorItem ? anchorItem.height : 28)
         radius: pop.open ? 16 : (anchorItem ? anchorItem.radius : 14)
         
-        color: "#000000"
-        border.color: pop.open ? "#1a1a1a" : "#000000"
+        color: Services.Theme.bgSolid
+        border.color: Services.Theme.border
         border.width: 1
+        
+        Behavior on color { ColorAnimation { duration: 200 } }
+        Behavior on border.color { ColorAnimation { duration: 200 } }
         
         Behavior on width { NumberAnimation { duration: 350; easing.type: Easing.OutExpo } }
         Behavior on height { NumberAnimation { duration: 350; easing.type: Easing.OutExpo } }
@@ -190,7 +194,8 @@ PanelWindow {
                     id: searchInput
                     Layout.fillWidth: true
                     font.pixelSize: 15
-                    color: "#ffffff"
+                    color: Services.Theme.text
+                    Behavior on color { ColorAnimation { duration: 200 } }
                     selectionColor: "#ffffff"
                     selectedTextColor: "#000000"
                     selectByMouse: true
@@ -236,7 +241,8 @@ PanelWindow {
                 Text {
                     text: pop.filteredApps.length + " / " + pop.allApps.length
                     font.pixelSize: 12
-                    color: "#666666"
+                    color: Services.Theme.subtext
+                    Behavior on color { ColorAnimation { duration: 200 } }
                 }
             }
 
