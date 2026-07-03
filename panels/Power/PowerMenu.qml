@@ -3,7 +3,6 @@ import QtQuick
 import qs.services as Services
 import QtQuick.Layouts
 import QtQuick.Effects
-import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
@@ -37,8 +36,8 @@ PopupWindow {
     property var shutdownCommand: ["systemctl", "poweroff"]
 
     // ---------- theme ----------
-    property color panelBg: Services.Theme.bgSolid
-    property color itemHover: Services.Theme.highlight
+    property color panelBg: "#000000"
+    property color itemHover: "#000000"
     property int panelRadius: 16
 
     // ---------- shadow (small + clean corners) ----------
@@ -271,30 +270,19 @@ PopupWindow {
             Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
         }
 
-        Item {
+        Image {
             anchors.centerIn: parent
             width: 40
             height: 40
+            source: it.icon
+            fillMode: Image.PreserveAspectFit
+            smooth: true
+            mipmap: true
+            sourceSize.width: 64
+            sourceSize.height: 64
+
             scale: pressed ? 0.92 : (hovered ? 1.04 : 1.0)
             Behavior on scale { NumberAnimation { duration: 130; easing.type: Easing.OutCubic } }
-
-            Image {
-                id: actionIcon
-                anchors.fill: parent
-                source: it.icon
-                fillMode: Image.PreserveAspectFit
-                smooth: true
-                mipmap: true
-                sourceSize.width: 64
-                sourceSize.height: 64
-                visible: false
-            }
-
-            ColorOverlay {
-                anchors.fill: actionIcon
-                source: actionIcon
-                color: Services.Theme.text
-            }
         }
 
         MouseArea {

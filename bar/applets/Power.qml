@@ -2,7 +2,13 @@
 import QtQuick
 import Quickshell
 import qs.services as Services
-import Qt5Compat.GraphicalEffects
+import qs.panels.RightPanel
+import qs.panels.WidgetPanel
+import qs.panels.Power
+import qs.panels.Launchers
+import qs.panels.Notifications
+import qs.panels.Media
+import qs.panels.OSD
 
 Item {
     id: root
@@ -36,7 +42,6 @@ Item {
         color: root.bg
         
         Image {
-            id: powerImg
             anchors.centerIn: parent
             width: 18
             height: 18
@@ -46,13 +51,6 @@ Item {
             mipmap: true
             sourceSize.width: 64
             sourceSize.height: 64
-            visible: false
-        }
-
-        ColorOverlay {
-            anchors.fill: powerImg
-            source: powerImg
-            color: Services.Theme.text
         }
         
         MouseArea {
