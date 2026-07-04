@@ -17,7 +17,7 @@ Item {
     readonly property bool isPowered: Services.Bluetooth.powered
 
     // Direct bindings to Theme properties - simple on/off only
-    readonly property color bgColor:       isPowered ? "#2a2a2a" : "#1a1a1a"
+    readonly property color bgColor:       isPowered ? "#000000" : "#000000"
     readonly property color borderColor:   "#333333"
     readonly property color iconColor:     isPowered ? "#cdd6f4" : "#a6adc8"
     readonly property color titleColor:    isPowered ? "#cdd6f4" : "#a6adc8"
@@ -48,7 +48,7 @@ Item {
         anchors.fill: parent
         radius: 16
         color: bgColor
-        border.width: 1
+        border.width: 0
         border.color: borderColor
 
         property bool hovered: false

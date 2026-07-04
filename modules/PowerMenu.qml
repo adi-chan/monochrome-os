@@ -179,8 +179,8 @@ PopupWindow {
     }
 
     // size to content + shadow padding (prevents shadow being clipped)
-    width:  Math.round(row.implicitWidth  + 20 + pop.shadowPad * 2)
-    height: Math.round(row.implicitHeight + 20 + pop.shadowPad * 2)
+    implicitWidth:  Math.round(row.implicitWidth  + 20 + pop.shadowPad * 2)
+    implicitHeight: Math.round(row.implicitHeight + 20 + pop.shadowPad * 2)
 
     // animate the whole card (shadow + clip move together)
     Item {

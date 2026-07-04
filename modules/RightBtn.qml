@@ -71,27 +71,34 @@ Rectangle {
             text: wifiIcon(Services.Network.connected, Services.Network.signalStrength)
             font.family: "Hack Nerd Font"
             font.pixelSize: 14
+            font.weight: 800
             color: Services.Theme.text
             opacity: Services.Network.connected ? 1.0 : 0.75
             Layout.alignment: Qt.AlignVCenter
         }
 
-        Text {
-            text: ""
-            font.family: "Hack Nerd Font"
-            font.pixelSize: 14
-            color: Services.Theme.text
-            opacity: 0.95
+        RowLayout {
+            spacing: 4
             Layout.alignment: Qt.AlignVCenter
-        }
+            Layout.rightMargin: 8
 
-        Text {
-            text: "󰃠 "
-            font.family: "Hack Nerd Font"
-            font.pixelSize: 14
-            color: Services.Theme.text
-            opacity: 0.95
-            Layout.alignment: Qt.AlignVCenter
+            Text {
+                text: Services.Bluetooth.powered ? (Services.Bluetooth.connected ? "󰂱" : "󰂯") : "󰂲"
+                font.family: "Hack Nerd Font"
+                font.pixelSize: 14
+                font.weight: 800
+                color: Services.Theme.text
+                opacity: Services.Bluetooth.connected ? 1.0 : 0.75
+            }
+
+            Text {
+                visible: Services.Bluetooth.connected && Services.Bluetooth.battery !== ""
+                text: Services.Bluetooth.battery + "%"
+                font.family: "JetBrains Mono"
+                font.pixelSize: 12
+                font.weight: 800
+                color: Services.Theme.text
+            }
         }
     }
 

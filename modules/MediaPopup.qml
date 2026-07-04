@@ -31,11 +31,10 @@ PopupWindow {
     property real shadowBlur: 0.55
     property int shadowOffsetY: 6
 
-    property int contentW: 325
-    property int contentH: 96
-
-    width: contentW + shadowPad * 2
-    height: contentH + shadowPad * 2
+    property int contentW: 340
+    property int contentH: 110
+    implicitWidth: contentW + shadowPad * 2
+    implicitHeight: contentH + shadowPad * 2
 
     property bool closing: false
     visible: (open && anchorItem !== null) || closing
@@ -290,13 +289,38 @@ PopupWindow {
             }
         }
 
-        Rectangle {
+        ClippingRectangle {
             id: clipper
             anchors.fill: parent
             radius: pop.cardRadius
             color: "transparent"
             clip: true
             antialiasing: true
+
+            Image {
+                id: bgImage
+                source: m.artUrl
+                anchors.fill: parent
+                fillMode: Image.PreserveAspectCrop
+                smooth: true
+                mipmap: true
+                visible: false
+            }
+
+            MultiEffect {
+                source: bgImage
+                anchors.fill: parent
+                blurEnabled: true
+                blurMax: 64
+                blur: 1.0
+                saturation: 1.4
+                visible: (m.artUrl && m.artUrl.length > 0)
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                color: Qt.rgba(pop.cardColor.r, pop.cardColor.g, pop.cardColor.b, (m.artUrl && m.artUrl.length > 0) ? 0.75 : 1.0)
+            }
 
             MouseArea {
                 anchors.fill: parent
@@ -315,15 +339,15 @@ PopupWindow {
                 spacing: 12
 
                 Item {
-                    implicitWidth: 75
-                    implicitHeight: 75
+                    implicitWidth: 86
+                    implicitHeight: 86
                     Layout.alignment: Qt.AlignVCenter
 
                     ClippingRectangle {
                         anchors.centerIn: parent
-                        width: 83
-                        height: 83
-                        radius: 10
+                        width: 86
+                        height: 86
+                        radius: 12
                         antialiasing: true
                         layer.enabled: true
                         layer.smooth: true
@@ -531,8 +555,8 @@ PopupWindow {
                             anchors.verticalCenter: parent.verticalCenter
                             x: bar.pad
                             width: bar.usableW
-                            height: 4
-                            radius: 2
+                            height: 6
+                            radius: 3
                             color: btnBg
                         }
 
@@ -540,15 +564,15 @@ PopupWindow {
                             anchors.verticalCenter: parent.verticalCenter
                             x: bar.pad
                             width: Math.max(6, bar.usableW * bar.f)
-                            height: 4
-                            radius: 2
+                            height: 6
+                            radius: 3
                             color: accentColor
                         }
 
                         Rectangle {
-                            width: 8
-                            height: 8
-                            radius: 4
+                            width: 12
+                            height: 12
+                            radius: 6
                             color: textColor
                             anchors.verticalCenter: parent.verticalCenter
                             x: Math.max(
@@ -634,7 +658,7 @@ PopupWindow {
                                         anchors.centerIn: parent
                                         text: pop.isPlaying ? "󰏤" : "󰐊"
                                         font.family: "JetBrains Mono"
-                                        font.pixelSize: 18
+                                        font.pixelSize: 22
                                         color: textColor
                                         opacity: 0.95
                                         transformOrigin: Item.Center

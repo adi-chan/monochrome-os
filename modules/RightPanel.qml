@@ -42,9 +42,8 @@ PopupWindow {
     property real animScale: 1
     property real animOpacity: 1
     property bool closing: false
-
-    width: contentW + shadowPad
-    height: contentH + shadowPad * 2
+    implicitWidth: contentW + shadowPad
+    implicitHeight: contentH + shadowPad * 2
 
     function playOpenAnim() {
         closing = false
@@ -271,9 +270,6 @@ PopupWindow {
                     QuickApps { Layout.fillWidth: true; Layout.preferredHeight: 60 }
                 }
 
-                NetworkMenu { id: networkMenu }
-                BluetoothMenu { id: bluetoothMenu }
-
                 Rectangle {
                     Layout.fillWidth: true
                     height: 1
@@ -288,4 +284,7 @@ PopupWindow {
             }
         }
     }
+
+    NetworkMenu { id: networkMenu }
+    BluetoothMenu { id: bluetoothMenu }
 }

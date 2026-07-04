@@ -10,8 +10,7 @@ Rectangle {
     color: Services.Theme.bgSolid
     antialiasing: true
     
-    border.color: Services.Theme.border
-    border.width: 1
+    border.width: 0
 
     property bool hovered: false
     property bool pressed: false

@@ -19,8 +19,8 @@ Item {
 
     // Direct bindings to Theme properties - 3 states: connected/disconnected/off
     readonly property color bgColor: {
-        if (!wifiEnabled) return "#0c0c0c"
-        return isConnected ? "#2a2a2a" : "#1a1a1a"
+        if (!wifiEnabled) return "#000000"
+        return isConnected ? "#000000" : "#000000"
     }
     readonly property color borderColor: "#333333"
     readonly property color iconColor: {
@@ -86,7 +86,7 @@ Component.onCompleted: {
         anchors.fill: parent
         radius: 16
         color: bgColor
-        border.width: 1
+        border.width: 0
         border.color: borderColor
 
         property bool hovered: false

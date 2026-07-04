@@ -8,8 +8,9 @@ Item {
 
     property bool powered: false
     property bool connected: false
-    property string deviceName: ""   // connected device name (first one), or ""
-
+    property string deviceName: ""
+    property string deviceMac: ""
+    property string battery: ""
     function refresh() {
         poweredProc.running = false
         poweredProc.running = true
@@ -43,11 +44,9 @@ Item {
         }
     }
 
-    // First connected device line:
-    // "Device AA:BB:CC:DD:EE:FF Some Device Name"
     Process {
         id: connectedDevProc
-        command: ["bash", "-lc", "bluetoothctl devices Connected | head -n1"]
+        command: ["bash", "-lc", "dev=$(bluetoothctl devices Connected | head -n1); if [ -z \"$dev\" ]; then echo \"\"; exit 0; fi; mac=$(echo \"$dev\" | awk '{print $2}'); name=$(echo \"$dev\" | cut -d' ' -f3-); batt=$(bluetoothctl info \"$mac\" | grep 'Battery Percentage' | awk -F'[(|)]' '{print $2}' | tr -d ' ' ); echo \"$mac|$batt|$name\""]
 
         stdout: StdioCollector {
             onStreamFinished: {
@@ -56,23 +55,25 @@ Item {
                 if (!root.powered || line.length === 0) {
                     root.connected = false
                     root.deviceName = ""
+                    root.deviceMac = ""
+                    root.battery = ""
                     return
                 }
 
-                if (line.indexOf("Device ") === 0) {
-                    var rest = line.slice(7) // after "Device "
-                    var firstSpace = rest.indexOf(" ")
-                    if (firstSpace > 0) {
-                        var name = rest.slice(firstSpace + 1).trim()
-                        root.deviceName = name
-                        root.connected = name.length > 0
-                        return
-                    }
+                var parts = line.split("|")
+                if (parts.length >= 3) {
+                    root.deviceMac = parts[0]
+                    root.battery = parts[1]
+                    root.deviceName = parts.slice(2).join("|")
+                    root.connected = root.deviceName.length > 0
+                    return
                 }
 
                 // fallback
                 root.connected = false
                 root.deviceName = ""
+                root.deviceMac = ""
+                root.battery = ""
             }
         }
     }

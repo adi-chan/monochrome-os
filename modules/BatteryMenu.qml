@@ -29,8 +29,8 @@ PopupWindow {
     visible: (open || hideTimer.running) && anchorItem !== null
     color: "transparent"
 
-    width: 255
-    height: 150
+    implicitWidth: 255
+    implicitHeight: 150
 
     anchor.item: anchorItem
 
