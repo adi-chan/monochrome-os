@@ -18,9 +18,9 @@
         "desc": "File manager"
     },
     {
-        "name": "Code - OSS",
-        "exec": "code-oss",
-        "icon": "com.visualstudio.code.oss",
+        "name": "The Honkers Railway Launcher",
+        "exec": "/usr/bin/the-honkers-railway-launcher",
+        "icon": "the-honkers-railway-launcher",
         "desc": "Code Editing"
     },
     {
@@ -36,9 +36,9 @@
         "desc": "Music player"
     },
     {
-        "name": "Brave",
-        "exec": "brave",
-        "icon": "brave-desktop",
+        "name": "An Anime Game Launcher",
+        "exec": "/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=moe.launcher.an-anime-game-launcher moe.launcher.an-anime-game-launcher",
+        "icon": "moe.launcher.an-anime-game-launcher",
         "desc": "Streaming/Recording"
     },
     {

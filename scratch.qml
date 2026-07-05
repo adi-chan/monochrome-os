@@ -1,8 +1,16 @@
 import QtQuick
 import Quickshell
-import Quickshell.Services.PulseAudio
+import Quickshell.Services.Notifications
 
-Window {
-    visible: false
-    Component.onCompleted: Qt.quit()
+ShellRoot {
+    NotificationServer {
+        id: server
+        Component.onCompleted: {
+            console.log("Server available")
+            for (var p in server) {
+                console.log(" -", p)
+            }
+            Qt.quit()
+        }
+    }
 }

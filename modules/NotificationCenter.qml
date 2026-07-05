@@ -24,7 +24,6 @@ PanelWindow {
         } else {
             panel.visible = true
             isOpen = true
-            fetchHistoryProc.running = true
         }
     }
 
@@ -72,46 +71,7 @@ PanelWindow {
         onCleared: if (panel.isOpen) panel.togglePanelAnimation()
     }
 
-    Process {
-        id: fetchHistoryProc
-        command: ["dunstctl", "history"]
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try {
-                    let json = JSON.parse(text)
-                    let notifs = json.data[0] || []
-                    notifModel.clear()
-                    for (let i = 0; i < notifs.length; i++) {
-                        let n = notifs[i]
-                        notifModel.append({
-                            appname: n.appname ? n.appname.data : "",
-                            summary: n.summary ? n.summary.data : "",
-                            body: n.body ? n.body.data : "",
-                            icon_path: n.icon_path ? n.icon_path.data : ""
-                        })
-                    }
-                } catch (e) {
-                    console.log("Failed to parse dunst history:", e)
-                }
-            }
-        }
-    }
-
-    Process {
-        id: clearHistoryProc
-        command: ["dunstctl", "history-clear"]
-        running: false
-        onExited: {
-            notifModel.clear()
-        }
-    }
-
-    Process {
-        id: openProc
-        command: ["thunar", ""]
-        running: false
-    }
+    // Processes removed for dunstctl
 
     Item {
         id: wrap
@@ -203,7 +163,7 @@ PanelWindow {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
-                                clearHistoryProc.running = true
+                                Services.Notifications.historyModel.clear()
                             }
                         }
                     }
@@ -223,7 +183,7 @@ PanelWindow {
                     Layout.fillHeight: true
                     clip: true
                     spacing: 10
-                    model: ListModel { id: notifModel }
+                    model: Services.Notifications.historyModel
                     
                     Text {
                         visible: listView.count === 0
@@ -246,13 +206,8 @@ PanelWindow {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
-                                if (model.icon_path !== "") {
-                                    let path = model.icon_path.replace(".thumb.jpg", "")
-                                    let dir = path.substring(0, path.lastIndexOf('/'))
-                                    openProc.command = ["thunar", dir]
-                                    openProc.running = true
-                                    panel.togglePanelAnimation() // Close the panel after clicking
-                                }
+                                Services.Notifications.openAttachedFile(model.image, model.appIcon)
+                                panel.togglePanelAnimation()
                             }
                         }
                         
@@ -264,8 +219,8 @@ PanelWindow {
                             
                             // Image / Icon
                             Image {
-                                visible: model.icon_path !== ""
-                                source: model.icon_path !== "" ? ("file://" + model.icon_path) : ""
+                                visible: model.image !== undefined && model.image !== "" || model.appIcon !== undefined && model.appIcon !== ""
+                                source: (model.image !== undefined && model.image !== "") ? model.image : ((model.appIcon !== undefined && model.appIcon !== "") ? model.appIcon : "")
                                 Layout.preferredWidth: 64
                                 Layout.preferredHeight: 64
                                 fillMode: Image.PreserveAspectCrop
@@ -291,14 +246,14 @@ PanelWindow {
                                 spacing: 4
                                 
                                 Text {
-                                    text: model.appname
+                                    text: model.appName !== undefined ? model.appName : ""
                                     color: Services.Theme.subtext
                                     font.pixelSize: 11
                                     font.family: "JetBrains Mono"
                                 }
                                 
                                 Text {
-                                    text: model.summary
+                                    text: model.summary !== undefined ? model.summary : ""
                                     color: Services.Theme.text
                                     font.pixelSize: 14
                                     font.bold: true
@@ -308,7 +263,7 @@ PanelWindow {
                                 }
                                 
                                 Text {
-                                    text: model.body.replace(/<[^>]*>?/gm, '') // Strip basic HTML if any
+                                    text: model.body !== undefined ? model.body.replace(/<[^>]*>?/gm, '') : "" // Strip basic HTML if any
                                     color: Services.Theme.subtext
                                     font.pixelSize: 13
                                     font.family: "JetBrains Mono"

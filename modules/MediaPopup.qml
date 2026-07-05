@@ -171,6 +171,20 @@ PopupWindow {
         }
     }
 
+    property bool shuffleMode: false
+    Process { id: shuffleSetProc }
+
+    Process {
+        id: shuffleGetProc
+        command: ["bash", "-lc", "playerctl shuffle 2>/dev/null || echo Off"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const v = text.trim()
+                pop.shuffleMode = (v === "On")
+            }
+        }
+    }
+
     function cycleLoop() {
         const next = (loopMode === "None") ? "Playlist"
                    : (loopMode === "Playlist") ? "Track"
@@ -179,8 +193,14 @@ PopupWindow {
         loopSetProc.command = ["playerctl", "loop", next]
         loopSetProc.running = false
         loopSetProc.running = true
-        loopGetProc.running = false
-        loopGetProc.running = true
+    }
+
+    function toggleShuffle() {
+        const next = shuffleMode ? "Off" : "On"
+        shuffleMode = !shuffleMode
+        shuffleSetProc.command = ["playerctl", "shuffle", next]
+        shuffleSetProc.running = false
+        shuffleSetProc.running = true
     }
 
     Timer {
@@ -188,7 +208,9 @@ PopupWindow {
         repeat: true
         running: pop.visible
         triggeredOnStart: true
-        onTriggered: { loopGetProc.running = false; loopGetProc.running = true }
+        onTriggered: { 
+            shuffleGetProc.running = false; shuffleGetProc.running = true 
+        }
     }
 
     property bool dragging: false
@@ -377,7 +399,7 @@ PopupWindow {
                         Item {
                             id: titleViewport
                             anchors.left: parent.left
-                            anchors.right: repeatBtn.left
+                            anchors.right: actionBtns.left
                             anchors.rightMargin: 8
                             height: 18
                             clip: true
@@ -495,39 +517,80 @@ PopupWindow {
                             }
                         }
 
-                        Rectangle {
-                            id: repeatBtn
-                            width: 24
-                            height: 24
-                            radius: 8
+                        Row {
+                            id: actionBtns
                             anchors.right: parent.right
                             anchors.verticalCenter: parent.verticalCenter
-                            z: 2
+                            spacing: 4
 
-                            color: repeatTap.pressed ? "#2a2b3a"
-                                 : (repeatTap.containsMouse ? "#2f3042" : "transparent")
+                            Rectangle {
+                                id: shuffleBtn
+                                width: 24
+                                height: 24
+                                radius: 8
+                                z: 2
 
-                            border.width: (pop.loopMode === "None") ? 0 : 1
-                            border.color: borderColor
-                            Behavior on color { ColorAnimation { duration: 120 } }
+                                color: shuffleTap.pressed ? "#2a2b3a"
+                                     : (shuffleTap.containsMouse ? "#2f3042" : "transparent")
 
-                            transformOrigin: Item.Center
-                            Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+                                border.width: pop.shuffleMode ? 1 : 0
+                                border.color: borderColor
+                                Behavior on color { ColorAnimation { duration: 120 } }
 
-                            Text {
-                                anchors.centerIn: parent
-                                font.family: "JetBrains Mono"
-                                font.pixelSize: 15
-                                text: (pop.loopMode === "Track") ? "󰑘" : "󰑖"
-                                color: textColor
-                                opacity: (pop.loopMode === "None") ? 0.45 : 0.95
+                                transformOrigin: Item.Center
+                                Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    font.family: "JetBrains Mono"
+                                    font.pixelSize: 15
+                                    text: "󰒟"
+                                    color: pop.shuffleMode ? accentColor : textColor
+                                    opacity: pop.shuffleMode ? 1.0 : 0.45
+                                    Behavior on color { ColorAnimation { duration: 150 } }
+                                }
+
+                                TapArea {
+                                    id: shuffleTap
+                                    anchors.fill: parent
+                                    targetItem: shuffleBtn
+                                    onClicked: pop.toggleShuffle()
+                                }
                             }
 
-                            TapArea {
-                                id: repeatTap
-                                anchors.fill: parent
-                                targetItem: repeatBtn
-                                onClicked: pop.cycleLoop()
+                            Rectangle {
+                                id: repeatBtn
+                                width: 24
+                                height: 24
+                                radius: 8
+                                z: 2
+
+                                color: repeatTap.pressed ? "#2a2b3a"
+                                     : (repeatTap.containsMouse ? "#2f3042" : "transparent")
+
+                                border.width: (pop.loopMode === "None") ? 0 : 1
+                                border.color: borderColor
+                                Behavior on color { ColorAnimation { duration: 120 } }
+
+                                transformOrigin: Item.Center
+                                Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    font.family: "JetBrains Mono"
+                                    font.pixelSize: 15
+                                    text: (pop.loopMode === "Track") ? "󰑘" : "󰑖"
+                                    color: (pop.loopMode === "None") ? textColor : accentColor
+                                    opacity: (pop.loopMode === "None") ? 0.45 : 1.0
+                                    Behavior on color { ColorAnimation { duration: 150 } }
+                                }
+
+                                TapArea {
+                                    id: repeatTap
+                                    anchors.fill: parent
+                                    targetItem: repeatBtn
+                                    onClicked: pop.cycleLoop()
+                                }
                             }
                         }
                     }

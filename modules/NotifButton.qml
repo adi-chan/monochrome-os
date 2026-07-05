@@ -21,7 +21,11 @@ Rectangle {
     
     // Notification tracking
     property int lastKnownCount: 0
-    property bool hasUnread: false
+    property bool hasUnread: Services.Notifications.unreadCount > 0
+
+    onHasUnreadChanged: {
+        if (hasUnread) jingleAnim.start()
+    }
 
     scale: pressed ? 0.985 : (hovered ? 1.03 : 1.0)
     Behavior on scale {
@@ -65,31 +69,7 @@ Rectangle {
         }
     }
 
-    // Instant notification check via temporary file
-    Process {
-        id: countProc
-        command: ["bash", "-c", "if [ -f /tmp/qs_new_notif ]; then rm /tmp/qs_new_notif; echo 1; else echo 0; fi"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                let status = text.trim()
-                if (status === "1") {
-                    root.hasUnread = true
-                    jingleAnim.start()
-                }
-            }
-        }
-    }
-    
-    Timer {
-        interval: 300
-        repeat: true
-        running: true
-        onTriggered: {
-            if (!countProc.running) {
-                countProc.running = true
-            }
-        }
-    }
+    // Removed /tmp polling and Timer processes
 
     function ensurePanel() {
         if (panelWin) return true
@@ -113,7 +93,7 @@ Rectangle {
         if (!ensurePanel()) return
         
         // Mark as read
-        root.hasUnread = false
+        Services.Notifications.clearUnread()
         
         panelWin.togglePanelAnimation()
     }
