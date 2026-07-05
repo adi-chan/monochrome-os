@@ -141,7 +141,7 @@ PopupWindow {
 
     Process {
         id: statProc
-        command: ["bash", "-lc", "playerctl status 2>/dev/null || echo Stopped"]
+        command: ["bash", "-lc", "playerctl --ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera status 2>/dev/null || echo Stopped"]
         stdout: StdioCollector { onStreamFinished: pop.isPlaying = (text.trim() === "Playing") }
     }
 
@@ -153,8 +153,8 @@ PopupWindow {
         onTriggered: { statProc.running = false; statProc.running = true }
     }
 
-    Process { id: prevProc; command: ["playerctl", "previous"] }
-    Process { id: nextProc; command: ["playerctl", "next"] }
+    Process { id: prevProc; command: ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "previous"] }
+    Process { id: nextProc; command: ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "next"] }
     Process { id: seekProc }
 
     property string loopMode: "None"
@@ -162,7 +162,7 @@ PopupWindow {
 
     Process {
         id: loopGetProc
-        command: ["bash", "-lc", "playerctl loop 2>/dev/null || echo None"]
+        command: ["bash", "-lc", "playerctl --ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera loop 2>/dev/null || echo None"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const v = text.trim()
@@ -176,7 +176,7 @@ PopupWindow {
 
     Process {
         id: shuffleGetProc
-        command: ["bash", "-lc", "playerctl shuffle 2>/dev/null || echo Off"]
+        command: ["bash", "-lc", "playerctl --ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera shuffle 2>/dev/null || echo Off"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const v = text.trim()
@@ -190,7 +190,7 @@ PopupWindow {
                    : (loopMode === "Playlist") ? "Track"
                    : "None"
         loopMode = next
-        loopSetProc.command = ["playerctl", "loop", next]
+        loopSetProc.command = ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "loop", next]
         loopSetProc.running = false
         loopSetProc.running = true
     }
@@ -198,7 +198,7 @@ PopupWindow {
     function toggleShuffle() {
         const next = shuffleMode ? "Off" : "On"
         shuffleMode = !shuffleMode
-        shuffleSetProc.command = ["playerctl", "shuffle", next]
+        shuffleSetProc.command = ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "shuffle", next]
         shuffleSetProc.running = false
         shuffleSetProc.running = true
     }
@@ -258,7 +258,7 @@ PopupWindow {
         seekPending = true
         pendingTimer.restart()
 
-        seekProc.command = ["playerctl", "position", String(sec)]
+        seekProc.command = ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "position", String(sec)]
         seekProc.running = false
         seekProc.running = true
     }

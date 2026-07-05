@@ -52,7 +52,7 @@ Item {
 
     Process {
         id: artProc
-        command: ["playerctl", "metadata", "mpris:artUrl"]
+        command: ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "metadata", "mpris:artUrl"]
         stdout: StdioCollector {
             onStreamFinished: {
                 // sanitize output (remove newlines/spaces)
@@ -65,7 +65,7 @@ Item {
 
     Process {
         id: artistProc
-        command: ["playerctl", "metadata", "xesam:artist"]
+        command: ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "metadata", "xesam:artist"]
         stdout: StdioCollector {
             onStreamFinished: {
                 var cleanedArtist = text.trim()
@@ -78,7 +78,7 @@ Item {
 
     Process {
         id: titleProc
-        command: ["playerctl", "metadata", "xesam:title"]
+        command: ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "metadata", "xesam:title"]
         stdout: StdioCollector {
             onStreamFinished: {
                 var cleanedtitle = text.trim()
@@ -93,7 +93,7 @@ Item {
 
     Process {
         id: posProcess
-        command: ["playerctl", "position"]
+        command: ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "position"]
         stdout: StdioCollector {
             onStreamFinished: {
                 let val = parseFloat(text.trim())
@@ -103,7 +103,7 @@ Item {
         }
     }
     
-    Process { id: playPauseProc; command: ["playerctl", "play-pause"] }
+    Process { id: playPauseProc; command: ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "play-pause"] }
         function playPause() {
             playPauseProc.running = false
             playPauseProc.running = true
@@ -112,7 +112,7 @@ Item {
 
     Process {
         id: lenProcess
-        command: ["playerctl", "metadata", "mpris:length"]
+        command: ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "metadata", "mpris:length"]
         stdout: StdioCollector {
             onStreamFinished: {
                 let val = parseFloat(text.trim())

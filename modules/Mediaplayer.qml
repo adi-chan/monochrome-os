@@ -7,7 +7,7 @@ import qs.services as Services
 
 Item {
     id: root
-    implicitHeight: 32
+    implicitHeight: 28
     implicitWidth: 260
     Layout.preferredWidth: implicitWidth
     Layout.alignment: Qt.AlignVCenter
@@ -32,13 +32,13 @@ Item {
     property bool detailsOpen: false
     property var onOpen: function() { detailsOpen = !detailsOpen }
 
-    Process { id: playPauseProc; command: ["playerctl", "play-pause"] }
-    Process { id: prevProc; command: ["playerctl", "previous"] }
-    Process { id: nextProc; command: ["playerctl", "next"] }
+    Process { id: playPauseProc; command: ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "play-pause"] }
+    Process { id: prevProc; command: ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "previous"] }
+    Process { id: nextProc; command: ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "next"] }
 
     Process {
         id: statusProc
-        command: ["bash", "-lc", "playerctl status 2>/dev/null || echo Stopped"]
+        command: ["bash", "-lc", "playerctl --ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera status 2>/dev/null || echo Stopped"]
         stdout: StdioCollector {
             onStreamFinished: root.isPlaying = (text.trim() === "Playing")
         }
@@ -92,7 +92,7 @@ Item {
 
         RowLayout {
             anchors.fill: parent
-            anchors.margins: 4
+            anchors.margins: 2
             spacing: 8
             z: 1
 

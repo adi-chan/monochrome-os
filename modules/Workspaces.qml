@@ -30,8 +30,8 @@ Item {
         radius: height / 2
         anchors.centerIn: parent
 
-        implicitWidth: row.implicitWidth + 16
-        implicitHeight: row.implicitHeight + 16
+        implicitWidth: row.implicitWidth + 12
+        implicitHeight: row.implicitHeight + 12
 
         Rectangle {
             id: activeIndicator

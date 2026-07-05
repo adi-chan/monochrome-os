@@ -38,6 +38,15 @@ ShellRoot {
     // Hot-Edge volume/brightness panel
     EdgeMixer {}
 
+    // Notification Toasts
+    Variants {
+        model: Quickshell.screens
+        NotificationToasts {
+            required property var modelData
+            screen: modelData
+        }
+    }
+
     // Add the Shortcut Wheel
     ShortcutWheel {
         // Overlay window on all screens or primary?

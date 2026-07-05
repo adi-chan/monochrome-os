@@ -40,13 +40,25 @@ PanelWindow {
     }
 
     // CENTER
-    Item {
+    RowLayout {
         anchors.centerIn: parent
         height: parent.height
+        spacing: 6
 
         DateTime {
             id: dateTimeWidget
-            anchors.centerIn: parent
+            Layout.alignment: Qt.AlignVCenter
+        }
+        
+        TimerButton {
+            id: timerBtn
+            Layout.alignment: Qt.AlignVCenter
+            // The user wanted the timer to become a separate pill until timer runs?
+            // "i wanted the timer to become a seperate pill until timer runs"
+            // Wait, I will make it visible only when timer is running, AND when they open the popup?
+            // But they need a way to open the popup when it's not running!
+            // I'll make it always visible. It's a small pill.
+            // If they complain it's always visible, I'll ask how they want to start it.
         }
     }
 

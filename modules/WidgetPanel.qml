@@ -40,6 +40,7 @@ PanelWindow {
     }
 
     function clamp01(v) { return Math.max(0, Math.min(1, v)) }
+    function clamp02(v) { return Math.max(0, Math.min(2, v)) }
     function lerp(a, b, t) { return a + (b - a) * t }
 
     onVisibleChanged: {
@@ -197,7 +198,6 @@ PanelWindow {
                         }
 
                         Item { Layout.fillWidth: true }
-                        Item { Layout.fillWidth: true }
 
                         Item {
                             id: tabWallpapers
@@ -224,6 +224,32 @@ PanelWindow {
                         }
 
                         Item { Layout.fillWidth: true }
+
+                        Item {
+                            id: tabTimer
+                            Layout.preferredWidth: timerLabel.implicitWidth
+                            Layout.preferredHeight: parent.height
+                            readonly property real labelW: timerLabel.implicitWidth
+                            readonly property real centerX: x + width / 2
+
+                            Text {
+                                id: timerLabel
+                                anchors.centerIn: parent
+                                anchors.verticalCenterOffset: topMenu.tabLabelVOffset
+                                text: "Timer"
+                                color: panel.pageIndex === 2 ? Services.Theme.text : Services.Theme.subtext
+                                font.pixelSize: 13
+                                font.family: "JetBrains Mono"
+                                font.weight: panel.pageIndex === 2 ? 700 : 600
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: panel.pageIndex = 2
+                            }
+                        }
+
+                        Item { Layout.fillWidth: true }
                     }
 
                     Rectangle {
@@ -244,14 +270,21 @@ PanelWindow {
 
                         readonly property real t: {
                             const w = Math.max(1, pageViewport.width)
-                            return panel.clamp01((-pageRow.x) / w)
+                            return panel.clamp02((-pageRow.x) / w)
                         }
 
                         readonly property real dashCX: tabDashboard.centerX
                         readonly property real wallCX: tabWallpapers.centerX
+                        readonly property real timerCX: tabTimer.centerX
 
-                        width: Math.max(34, panel.lerp(tabDashboard.labelW + 10, tabWallpapers.labelW + 10, t))
-                        x: panel.lerp(dashCX, wallCX, t) - width / 2
+                        width: {
+                            if (t < 1.0) return Math.max(34, panel.lerp(tabDashboard.labelW + 10, tabWallpapers.labelW + 10, t))
+                            else return Math.max(34, panel.lerp(tabWallpapers.labelW + 10, tabTimer.labelW + 10, t - 1.0))
+                        }
+                        x: {
+                            if (t < 1.0) return panel.lerp(dashCX, wallCX, t) - width / 2
+                            else return panel.lerp(wallCX, timerCX, t - 1.0) - width / 2
+                        }
                     }
                 }
 
@@ -266,7 +299,7 @@ PanelWindow {
 
                     Row {
                         id: pageRow
-                        width: pageViewport.width * 2
+                        width: pageViewport.width * 3
                         height: pageViewport.height
                         x: -panel.pageIndex * pageViewport.width
 
@@ -313,6 +346,16 @@ PanelWindow {
                             height: pageViewport.height
 
                             Wallpaper {
+                                anchors.fill: parent
+                            }
+                        }
+
+                        // -------- Timer --------
+                        Item {
+                            width: pageViewport.width
+                            height: pageViewport.height
+
+                            TimerWidget {
                                 anchors.fill: parent
                             }
                         }
