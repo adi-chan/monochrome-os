@@ -51,7 +51,13 @@ PanelWindow {
     
     // Visual animated width
     property int visualWidth: showApps ? (panelWidth + appsWidth + sideGap) : panelWidth
-    Behavior on visualWidth { NumberAnimation { duration: 400; easing.type: Easing.OutExpo } }
+    Behavior on visualWidth { 
+        SpringAnimation { 
+            spring: root.showApps ? 3.5 : 5.0
+            damping: root.showApps ? 0.35 : 1.0
+            epsilon: 0.25
+        } 
+    }
     
     
     // Vertical size calculation
@@ -62,10 +68,10 @@ PanelWindow {
     // Slide animation (slides up from the bottom)
     property real animY: (expanded || pinExpanded) ? 0 : targetHeight
     Behavior on animY { 
-        NumberAnimation { 
-            // 400ms duration with OutExpo creates a very silky smooth, fluid deceleration
-            duration: 400 
-            easing.type: (root.expanded || root.pinExpanded) ? Easing.OutExpo : Easing.InExpo
+        SpringAnimation { 
+            spring: root.expanded || root.pinExpanded ? 4.0 : 5.0
+            damping: root.expanded || root.pinExpanded ? 0.28 : 1.0
+            epsilon: 0.25
         } 
     }
     

@@ -432,47 +432,7 @@ PopupWindow {
                                 }
                             }
 
-                            Item {
-                                z: 10
-                                visible: pop.titleNeedsMarquee
-                                width: pop.titleFadeW
-                                anchors.left: parent.left
-                                anchors.top: parent.top
-                                anchors.bottom: parent.bottom
-                                clip: true
-                                Rectangle {
-                                    anchors.centerIn: parent
-                                    width: parent.height
-                                    height: parent.width
-                                    rotation: -90
-                                    transformOrigin: Item.Center
-                                    gradient: Gradient {
-                                        GradientStop { position: 0.0; color: pop.cardColor }
-                                        GradientStop { position: 1.0; color: "transparent" }
-                                    }
-                                }
-                            }
 
-                            Item {
-                                z: 10
-                                visible: pop.titleNeedsMarquee
-                                width: pop.titleFadeW
-                                anchors.right: parent.right
-                                anchors.top: parent.top
-                                anchors.bottom: parent.bottom
-                                clip: true
-                                Rectangle {
-                                    anchors.centerIn: parent
-                                    width: parent.height
-                                    height: parent.width
-                                    rotation: -90
-                                    transformOrigin: Item.Center
-                                    gradient: Gradient {
-                                        GradientStop { position: 0.0; color: "transparent" }
-                                        GradientStop { position: 1.0; color: pop.cardColor }
-                                    }
-                                }
-                            }
 
                             Timer {
                                 id: titleDelay

@@ -153,6 +153,11 @@ Rectangle {
                         elide: Text.ElideRight
                         Layout.fillWidth: true
                     }
+                    Text {
+                        text: Math.round(appSlider.value) + "%"
+                        color: Services.Theme.subtext
+                        font.pixelSize: 13
+                    }
                 }
                 
                 ServicesUI.StyledSlider {
@@ -160,7 +165,7 @@ Rectangle {
                     Layout.fillWidth: true
                     implicitHeight: 35
                     from: 0
-                    to: 100
+                    to: 150
                     stepSize: 1
                     snapMode: Slider.SnapAlways
                     

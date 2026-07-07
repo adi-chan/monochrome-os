@@ -92,7 +92,10 @@ Item {
 
         RowLayout {
             anchors.fill: parent
-            anchors.margins: 2
+            anchors.topMargin: 2
+            anchors.bottomMargin: 2
+            anchors.leftMargin: 2
+            anchors.rightMargin: 14
             spacing: 8
             z: 1
 
@@ -282,14 +285,11 @@ Item {
                     clip: true
 
                     Rectangle {
-                        anchors.centerIn: parent
-                        width: parent.height
-                        height: parent.width
-                        rotation: -90
-                        transformOrigin: Item.Center
+                        anchors.fill: parent
                         gradient: Gradient {
+                            orientation: Gradient.Horizontal
                             GradientStop { position: 0.0; color: card.color }
-                            GradientStop { position: 1.0; color: "transparent" }
+                            GradientStop { position: 1.0; color: Qt.alpha(card.color, 0.0) }
                         }
                     }
                 }
@@ -304,13 +304,10 @@ Item {
                     clip: true
 
                     Rectangle {
-                        anchors.centerIn: parent
-                        width: parent.height
-                        height: parent.width
-                        rotation: -90
-                        transformOrigin: Item.Center
+                        anchors.fill: parent
                         gradient: Gradient {
-                            GradientStop { position: 0.0; color: "transparent" }
+                            orientation: Gradient.Horizontal
+                            GradientStop { position: 0.0; color: Qt.alpha(card.color, 0.0) }
                             GradientStop { position: 1.0; color: card.color }
                         }
                     }
