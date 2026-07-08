@@ -55,4 +55,7 @@ ShellRoot {
         // Wait, ShortcutWheel is a PanelWindow, it might need to know which screen to show on.
         // If we don't specify, Quickshell usually picks the primary.
     }
+
+    // Welcome / Reminders Screen
+    Welcome {}
 }
