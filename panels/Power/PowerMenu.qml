@@ -4,10 +4,9 @@ import qs.services as Services
 import QtQuick.Layouts
 import QtQuick.Effects
 import Quickshell
-import Quickshell.Hyprland
 import Quickshell.Io
 
-PopupWindow {
+PanelWindow {
     id: pop
 
     // controlled by Power.qml
@@ -16,17 +15,43 @@ PopupWindow {
     property int gap: 10
     signal requestClose()
 
-    // Keep window alive while closing animation plays
-    visible: (open && anchorItem !== null) || closing
-    color: "transparent"
+    // Full screen overlay setup
+    anchors { top: true; bottom: true; left: true; right: true }
+    exclusiveZone: -1
+    color: Qt.rgba(0, 0, 0, 0.75) // Dark dimming backdrop
+
+    // Fade in/out animation
+    opacity: open ? 1.0 : 0.0
+    visible: opacity > 0.001
+    Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+
+    // Close on click outside
+    MouseArea {
+        anchors.fill: parent
+        hoverEnabled: true
+        onClicked: requestClose()
+    }
+
+    // Esc to close
+    Item {
+        anchors.fill: parent
+        focus: open
+        Keys.onEscapePressed: requestClose()
+    }
 
     // ---------- icons ----------
-    property url iconDir: Qt.resolvedUrl("../assets/icons")
+    property url iconDir: Qt.resolvedUrl("../../assets/power_icons")
     property url lockIcon:     iconDir + "/lock.svg"
-    property url sleepIcon:    iconDir + "/sleep.svg"
-    property url logoutIcon:   iconDir + "/logout.svg"
-    property url rebootIcon:   iconDir + "/reboot.svg"
+    property url sleepIcon:    iconDir + "/moon.svg"
+    property url logoutIcon:   iconDir + "/log-out.svg"
+    property url rebootIcon:   iconDir + "/refresh-cw.svg"
     property url shutdownIcon: iconDir + "/power.svg"
+
+    // ---------- gifs ----------
+    property url lockGif:     iconDir + "/lock.gif"
+    property url sleepGif:    iconDir + "/sleep.gif"
+    property url rebootGif:   iconDir + "/restart.gif"
+    property url shutdownGif: iconDir + "/poweroff.gif"
 
     // ---------- commands ----------
     property var lockCommand: ["qs", "ipc", "call", "lockscreen", "lock"]
@@ -35,265 +60,161 @@ PopupWindow {
     property var rebootCommand:   ["systemctl", "reboot"]
     property var shutdownCommand: ["systemctl", "poweroff"]
 
-    // ---------- theme ----------
-    property color panelBg: "#000000"
-    property color itemHover: "#000000"
-    property int panelRadius: 16
-
-    // ---------- shadow (small + clean corners) ----------
-    property int shadowPad: 10          // padding so shadow won't get clipped
-    property real shadowOpacity: 0.28
-    property real shadowBlur: 0.55
-    property int shadowOffsetY: 6
-
-    // --- open/close animation state ---
-    property real animY: 0
-    property real animScale: 1
-    property real animOpacity: 1
-    property bool closing: false
-
-    function playOpenAnim() {
-        closing = false
-        animY = -14
-        animScale = 0.975
-        animOpacity = 0
-        openAnim.restart()
-    }
-
-    function playCloseAnim() {
-        if (closing) return
-        closing = true
-        focusGrab.active = false
-        requestClose() // ask Power.qml to set open=false
-        closeAnim.restart()
-    }
-
-    // run helper (runs the specific Process you pass in)
     function run(proc) {
         proc.running = false
         proc.running = true
-        playCloseAnim()
+        requestClose()
     }
 
-    // one Process per command
     Process { id: lockProc;     command: pop.lockCommand }
     Process { id: sleepProc;    command: pop.sleepCommand }
     Process { id: logoutProc;   command: pop.logoutCommand }
     Process { id: rebootProc;   command: pop.rebootCommand }
     Process { id: shutdownProc; command: pop.shutdownCommand }
 
-    // If parent toggles open false directly, animate out
-    onOpenChanged: {
-        if (open && anchorItem !== null) {
-            // opening: handled by onVisibleChanged
-        } else if (!open && visible && !closing) {
-            playCloseAnim()
-        }
-    }
+    Row {
+        id: containerRow
+        anchors.centerIn: parent
+        spacing: -24 // overlap for the skew
 
-    onVisibleChanged: {
-        if (visible && open) playOpenAnim()
-    }
-
-    LazyLoader {
-        id: backdropLoader
-        activeAsync: pop.visible   // stay alive while close anim plays too
-
-        PanelWindow {
-            id: backdrop
-            color: "transparent"
-            visible: true
-            exclusiveZone: -1
-
-            anchors { top: true; bottom: true; left: true; right: true }
-
-            MouseArea {
-                anchors.fill: parent
-                acceptedButtons: Qt.AllButtons
-                hoverEnabled: true
-                onPressed: pop.playCloseAnim()
-            }
-        }
-    }
-
-    // Click outside to close (focus based, keep as extra fallback)
-    HyprlandFocusGrab {
-        id: focusGrab
-        windows: [ pop ]
-        active: pop.visible && !pop.closing
-        onCleared: pop.playCloseAnim()
-    }
-
-    // Esc closes
-    Item {
-        anchors.fill: parent
-        focus: true
-        Keys.onEscapePressed: pop.playCloseAnim()
-    }
-
-    // --- bounce IN (same as your popup) ---
-    ParallelAnimation {
-        id: openAnim
-
-        SequentialAnimation {
-            NumberAnimation { target: pop; property: "animY"; from: -14; to: 3; duration: 140; easing.type: Easing.OutCubic }
-            NumberAnimation { target: pop; property: "animY"; from: 3; to: 0; duration: 170; easing.type: Easing.OutBack; easing.overshoot: 1.35 }
-        }
-
-        SequentialAnimation {
-            NumberAnimation { target: pop; property: "animScale"; from: 0.975; to: 1.03; duration: 140; easing.type: Easing.OutCubic }
-            NumberAnimation { target: pop; property: "animScale"; from: 1.03; to: 1.0; duration: 190; easing.type: Easing.OutBack; easing.overshoot: 1.25 }
-        }
-
-        NumberAnimation { target: pop; property: "animOpacity"; from: 0; to: 1; duration: 160; easing.type: Easing.OutCubic }
-    }
-
-    // --- bounce OUT (same as your popup) ---
-    ParallelAnimation {
-        id: closeAnim
-
-        SequentialAnimation {
-            NumberAnimation { target: pop; property: "animY"; from: 0; to: 2; duration: 70; easing.type: Easing.OutCubic }
-            NumberAnimation { target: pop; property: "animY"; from: 2; to: -10; duration: 140; easing.type: Easing.InCubic }
-        }
-
-        NumberAnimation { target: pop; property: "animScale"; from: 1.0; to: 0.98; duration: 170; easing.type: Easing.InCubic }
-        NumberAnimation { target: pop; property: "animOpacity"; from: 1; to: 0; duration: 150; easing.type: Easing.InCubic }
-
-        onStopped: pop.closing = false
-    }
-
-    // ---- centered-under-button anchoring ----
-    anchor.item: anchorItem
-    Connections {
-        target: pop.anchor
-        function onAnchoring() {
-            if (!pop.anchorItem) return
-            pop.anchor.rect.x = Math.round(pop.anchorItem.width / 2 - pop.width / 2)
-            // subtract shadowPad so the *card* starts at gap (not the padded window)
-            pop.anchor.rect.y = Math.round(pop.anchorItem.height + pop.gap - pop.shadowPad)
-            pop.anchor.rect.width = 1
-            pop.anchor.rect.height = 1
-        }
-    }
-
-    // size to content + shadow padding (prevents shadow being clipped)
-    width:  Math.round(row.implicitWidth  + 20 + pop.shadowPad * 2)
-    height: Math.round(row.implicitHeight + 20 + pop.shadowPad * 2)
-
-    // animate the whole card (shadow + clip move together)
-    Item {
-        id: animWrap
-        anchors.fill: parent
-        anchors.margins: pop.shadowPad
-        y: pop.animY
-        scale: pop.animScale
-        opacity: pop.animOpacity
-        transformOrigin: Item.Top
-
-        // Shadow + background (NO clip here)
-        Rectangle {
-            id: card
-            anchors.fill: parent
-            radius: pop.panelRadius
-            color: pop.panelBg
-            antialiasing: true
-
-            layer.enabled: true
-            layer.effect: MultiEffect {
-                shadowEnabled: true
-                shadowOpacity: pop.shadowOpacity
-                shadowVerticalOffset: pop.shadowOffsetY
-                shadowBlur: pop.shadowBlur
-            }
-        }
-
-        // Content clip (rounded corners, NO shadow here)
-        Rectangle {
-            id: clipper
-            anchors.fill: parent
-            radius: pop.panelRadius
-            color: "transparent"
-            clip: true
-            antialiasing: true
-
-            // eat clicks inside so they don't fall through to the backdrop
-            MouseArea {
-                anchors.fill: parent
-                acceptedButtons: Qt.AllButtons
-                hoverEnabled: true
-                propagateComposedEvents: false
-                onPressed: mouse.accepted = true
-                onClicked: mouse.accepted = true
-            }
-
-            RowLayout {
-                id: row
-                anchors.fill: parent
-                anchors.margins: 10
-                spacing: 8
-
-                ActionItem { icon: pop.lockIcon;     onTriggered: pop.run(lockProc) }
-                ActionItem { icon: pop.sleepIcon;    onTriggered: pop.run(sleepProc) }
-                ActionItem { icon: pop.logoutIcon;   onTriggered: pop.run(logoutProc) }
-                ActionItem { icon: pop.rebootIcon;   onTriggered: pop.run(rebootProc) }
-                ActionItem { icon: pop.shutdownIcon; onTriggered: pop.run(shutdownProc) }
-            }
-        }
+        ActionItem { icon: pop.lockIcon;     label: "Lock";     gif: pop.lockGif;     onTriggered: pop.run(lockProc) }
+        ActionItem { icon: pop.sleepIcon;    label: "Sleep";    gif: pop.sleepGif;    onTriggered: pop.run(sleepProc) }
+        ActionItem { icon: pop.logoutIcon;   label: "Logout";   isLogout: true;       onTriggered: pop.run(logoutProc) }
+        ActionItem { icon: pop.rebootIcon;   label: "Restart";  gif: pop.rebootGif;   danger: true; onTriggered: pop.run(rebootProc) }
+        ActionItem { icon: pop.shutdownIcon; label: "Shutdown"; gif: pop.shutdownGif; danger: true; onTriggered: pop.run(shutdownProc) }
     }
 
     component ActionItem : Item {
         id: it
-        implicitWidth: 76
-        implicitHeight: 76
+        width: hovered ? 440 : 120
+        height: 500
+        z: hovered ? 10 : 1
 
         property url icon: ""
+        property string label: ""
+        property url gif: ""
+        property bool danger: false
+        property bool isLogout: false
+        
         signal triggered()
-
         property bool hovered: false
-        property bool pressed: false
 
-        scale: pressed ? 0.94 : (hovered ? 1.06 : 1.0)
-        Behavior on scale { NumberAnimation { duration: 130; easing.type: Easing.OutCubic } }
+        Behavior on width { NumberAnimation { duration: 450; easing.type: Easing.OutExpo } }
 
         Rectangle {
-            anchors.fill: parent
-            radius: 12
-            color: pressed ? pop.itemPressed : (hovered ? pop.itemHover : "transparent")
-        }
+            id: rect
+            width: parent.width
+            height: parent.height
+            color: "#111"
+            radius: 20
+            clip: true
 
-        Rectangle {
-            anchors.fill: parent
-            radius: 12
-            color: Services.Theme.text
-            opacity: hovered ? 0.06 : 0.0
-            Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
-        }
+            border.width: it.hovered ? 2 : 1
+            border.color: it.hovered ? (it.danger ? "#ff4444" : "#ffffff") : "#333"
 
-        Image {
-            anchors.centerIn: parent
-            width: 40
-            height: 40
-            source: it.icon
-            fillMode: Image.PreserveAspectFit
-            smooth: true
-            mipmap: true
-            sourceSize.width: 64
-            sourceSize.height: 64
+            // Skew animation: slants when unhovered, straightens when hovered
+            property real skew: it.hovered ? 0 : -0.22
+            Behavior on skew { NumberAnimation { duration: 450; easing.type: Easing.OutExpo } }
 
-            scale: pressed ? 0.92 : (hovered ? 1.04 : 1.0)
-            Behavior on scale { NumberAnimation { duration: 130; easing.type: Easing.OutCubic } }
-        }
+            // Outer skew
+            transform: Matrix4x4 {
+                matrix: Qt.matrix4x4(
+                    1, rect.skew, 0, -rect.skew * rect.height / 2,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 0, 0, 1
+                )
+            }
 
-        MouseArea {
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onEntered: it.hovered = true
-            onExited: { it.hovered = false; it.pressed = false }
-            onPressed: it.pressed = true
-            onReleased: it.pressed = false
-            onClicked: it.triggered()
+            // Inner counter-skew so the images remain upright
+            Item {
+                id: contentWrapper
+                anchors.centerIn: parent
+                // Ensure width covers the diagonal corners
+                width: parent.width + Math.abs(rect.skew) * parent.height + 4
+                height: parent.height
+
+                transform: Matrix4x4 {
+                    matrix: Qt.matrix4x4(
+                        1, -rect.skew, 0, rect.skew * rect.height / 2,
+                        0, 1, 0, 0,
+                        0, 0, 1, 0,
+                        0, 0, 0, 1
+                    )
+                }
+
+                // GIF Background
+                AnimatedImage {
+                    anchors.fill: parent
+                    source: it.gif
+                    fillMode: Image.PreserveAspectCrop
+                    visible: it.gif !== ""
+                    playing: it.hovered
+                }
+
+                // Fallback for Logout
+                Rectangle {
+                    anchors.fill: parent
+                    color: "#1a1a1a"
+                    visible: it.isLogout
+                    Text {
+                        anchors.centerIn: parent
+                        text: "didn't find a gif\nfor this"
+                        color: "#555"
+                        font.pixelSize: 14
+                        horizontalAlignment: Text.AlignHCenter
+                    }
+                }
+
+                // Dark tint
+                Rectangle {
+                    anchors.fill: parent
+                    color: it.danger && it.hovered ? "#33ff0000" : "#000000"
+                    opacity: it.hovered ? 0.3 : 0.7
+                    Behavior on opacity { NumberAnimation { duration: 300 } }
+                    Behavior on color { ColorAnimation { duration: 300 } }
+                }
+
+                // Static Icon
+                Image {
+                    anchors.centerIn: parent
+                    anchors.verticalCenterOffset: it.hovered ? -20 : 0
+                    width: 48
+                    height: 48
+                    source: it.icon
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true
+                    opacity: it.hovered ? 0.0 : 0.7
+                    Behavior on opacity { NumberAnimation { duration: 300 } }
+                    Behavior on anchors.verticalCenterOffset { NumberAnimation { duration: 400; easing.type: Easing.OutBack } }
+                }
+
+                // Label Text
+                Text {
+                    anchors.centerIn: parent
+                    text: it.label
+                    color: "white"
+                    font.pixelSize: 32
+                    font.bold: true
+                    opacity: it.hovered ? 1.0 : 0.0
+                    scale: it.hovered ? 1.0 : 0.8
+                    Behavior on opacity { NumberAnimation { duration: 300 } }
+                    Behavior on scale { NumberAnimation { duration: 400; easing.type: Easing.OutBack } }
+                }
+            }
+
+            // Mouse interaction
+            MouseArea {
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onEntered: it.hovered = true
+                onExited: it.hovered = false
+                onClicked: {
+                    mouse.accepted = true
+                    it.triggered()
+                }
+            }
         }
     }
 }

@@ -8,7 +8,7 @@ import qs.services as Services
 Item {
     id: root
     implicitHeight: 28
-    implicitWidth: 260
+    implicitWidth: 320
     Layout.preferredWidth: implicitWidth
     Layout.alignment: Qt.AlignVCenter
 
@@ -28,6 +28,7 @@ Item {
     property bool isPlaying: false
     property bool needsMarquee: false
     property int fadeW: 12
+    property string playbackTime: ""
 
     property bool detailsOpen: false
     property var onOpen: function() { detailsOpen = !detailsOpen }
@@ -44,6 +45,22 @@ Item {
         }
     }
 
+    Process {
+        id: timeProc
+        command: ["bash", "-c", "playerctl --ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera metadata --format '{{ duration(position) }}' 2>/dev/null || echo ''"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let t = text.trim();
+                // Filter out broken lengths like 16 hours
+                if (t && !t.includes("16:")) {
+                    root.playbackTime = t;
+                } else {
+                    root.playbackTime = "";
+                }
+            }
+        }
+    }
+
     Timer {
         interval: 800
         repeat: true
@@ -52,6 +69,16 @@ Item {
         onTriggered: {
             statusProc.running = false
             statusProc.running = true
+        }
+    }
+
+    Timer {
+        interval: 1000
+        repeat: true
+        running: root.isPlaying
+        onTriggered: {
+            timeProc.running = false
+            timeProc.running = true
         }
     }
 
@@ -101,7 +128,7 @@ Item {
 
             Rectangle {
                 id: controlPill
-                Layout.preferredWidth: 86
+                Layout.preferredWidth: 86 + ((root.playbackTime !== "" && root.line !== "No Artist - No Media") ? 44 : 0)
                 Layout.preferredHeight: 24
                 radius: 12
                 color: root.btnBg
@@ -235,6 +262,24 @@ Item {
                                 nextProc.running = false
                                 nextProc.running = true
                             }
+                        }
+                    }
+
+                    // Time Text
+                    Item {
+                        Layout.preferredWidth: timeText.implicitWidth
+                        Layout.fillHeight: true
+                        visible: root.playbackTime !== "" && root.line !== "No Artist - No Media"
+                        Layout.rightMargin: 6
+                        Text {
+                            id: timeText
+                            anchors.centerIn: parent
+                            text: root.playbackTime
+                            font.family: "JetBrains Mono"
+                            font.pixelSize: 11
+                            font.weight: 600
+                            color: root.text
+                            opacity: 0.8
                         }
                     }
                 }
