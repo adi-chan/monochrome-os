@@ -26,6 +26,26 @@ Item {
     readonly property string line: (mpris.albumArtist || "No Artist") + " - " + (mpris.albumTitle || "No Media")
 
     property bool isPlaying: false
+    
+    property var audioData: new Array(80).fill(0)
+    property int audioTick: 0
+    Process {
+        id: cavaProc
+        running: root.isPlaying
+        command: ["cava", "-p", "/home/nick/.config/quickshell/cava.conf"]
+        stdout: SplitParser {
+            splitMarker: "\n"
+            onRead: data => {
+                const parts = data.split(";")
+                let newArr = new Array(80)
+                for (let i = 0; i < 80; i++) {
+                    newArr[i] = parseInt(parts[i]) || 0
+                }
+                root.audioData = newArr
+                root.audioTick++
+            }
+        }
+    }
     property bool needsMarquee: false
     property int fadeW: 12
     property string playbackTime: ""
@@ -82,8 +102,88 @@ Item {
         }
     }
 
-    Rectangle {
-        id: card
+        Canvas {
+            id: eqCanvas
+            anchors.fill: parent
+            anchors.margins: -16
+            visible: root.isPlaying
+            z: -1
+            
+            Connections {
+                target: root
+                function onAudioTickChanged() {
+                    eqCanvas.requestPaint();
+                }
+            }
+            
+            onPaint: {
+                var ctx = getContext("2d");
+                ctx.reset();
+                
+                var w = width - 32;
+                var h = height - 32;
+                var R = h / 2;
+                
+                function getPillPoint(t) {
+                    var w_straight = Math.max(0, w - 2 * R);
+                    var arc_len = Math.PI * R;
+                    var total_len = 2 * w_straight + 2 * arc_len;
+                    
+                    var d = t * total_len;
+                    
+                    if (d <= w_straight) {
+                        return { x: R + d, y: 0, nx: 0, ny: -1 };
+                    }
+                    d -= w_straight;
+                    
+                    if (d <= arc_len) {
+                        var angle = -Math.PI/2 + (d / arc_len) * Math.PI;
+                        return { x: w - R + Math.cos(angle) * R, y: R + Math.sin(angle) * R, nx: Math.cos(angle), ny: Math.sin(angle) };
+                    }
+                    d -= arc_len;
+                    
+                    if (d <= w_straight) {
+                        return { x: w - R - d, y: h, nx: 0, ny: 1 };
+                    }
+                    d -= w_straight;
+                    
+                    var angle = Math.PI/2 + (d / arc_len) * Math.PI;
+                    return { x: R + Math.cos(angle) * R, y: R + Math.sin(angle) * R, nx: Math.cos(angle), ny: Math.sin(angle) };
+                }
+                
+                ctx.fillStyle = root.bg;
+                ctx.beginPath();
+                
+                var points = 250;
+                for (var i = 0; i <= points; i++) {
+                    var t = i / points;
+                    var pt = getPillPoint(t);
+                    
+                    var fIndex = (pt.x / w) * 79;
+                    var idx1 = Math.floor(fIndex);
+                    var idx2 = Math.min(79, idx1 + 1);
+                    var frac = fIndex - idx1;
+                    var val = (root.audioData[idx1] || 0) * (1 - frac) + (root.audioData[idx2] || 0) * frac;
+                    
+                    // Simple easing/smoothing to avoid sharp jumps
+                    var h_offset = (val / 100) * 12;
+                    
+                    var cx = 16 + pt.x + pt.nx * h_offset;
+                    var cy = 16 + pt.y + pt.ny * h_offset;
+                    
+                    if (i === 0) {
+                        ctx.moveTo(cx, cy);
+                    } else {
+                        ctx.lineTo(cx, cy);
+                    }
+                }
+                ctx.closePath();
+                ctx.fill();
+            }
+        }
+
+        Rectangle {
+            id: card
         anchors.fill: parent
         radius: 14
         antialiasing: true
@@ -191,7 +291,7 @@ Item {
                             height: 10
                             
                             Repeater {
-                                model: 3
+                                model: 5
                                 Rectangle {
                                     width: 3
                                     height: 4
@@ -204,18 +304,18 @@ Item {
                                         loops: Animation.Infinite
                                         
                                         NumberAnimation { 
-                                            to: index === 0 ? 10 : (index === 1 ? 6 : 8)
-                                            duration: 200 + (index * 50)
+                                            to: [10, 6, 12, 5, 8][index]
+                                            duration: 200 + (index * 35)
                                             easing.type: Easing.InOutQuad 
                                         }
                                         NumberAnimation { 
                                             to: 3
-                                            duration: 250 + (index * 30)
+                                            duration: 250 + (index * 25)
                                             easing.type: Easing.InOutQuad 
                                         }
                                         NumberAnimation { 
-                                            to: index === 0 ? 5 : (index === 1 ? 10 : 7)
-                                            duration: 180 + (index * 40)
+                                            to: [5, 10, 7, 11, 4][index]
+                                            duration: 180 + (index * 30)
                                             easing.type: Easing.InOutQuad 
                                         }
                                     }

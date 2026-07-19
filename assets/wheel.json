@@ -12,9 +12,9 @@
         "desc": "Terminal emulator"
     },
     {
-        "name": "Thunar File Manager",
-        "exec": "thunar",
-        "icon": "org.xfce.thunar",
+        "name": "osu!",
+        "exec": "/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=start-osu --file-forwarding sh.ppy.osu @@",
+        "icon": "sh.ppy.osu",
         "desc": "File manager"
     },
     {

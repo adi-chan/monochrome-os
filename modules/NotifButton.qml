@@ -38,10 +38,10 @@ Rectangle {
         Text {
             id: bellIcon
             anchors.centerIn: parent
-            color: Services.Theme.text
+            color: Services.Notifications.dndEnabled ? Services.Theme.subtext : Services.Theme.text
             font.pixelSize: 14
             font.family: "JetBrainsMono Nerd Font"
-            text: "󰂚"
+            text: Services.Notifications.dndEnabled ? "󰂛" : "󰂚"
             
             transformOrigin: Item.Top
             
@@ -102,10 +102,17 @@ Rectangle {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
         onEntered: root.hovered = true
         onExited: { root.hovered = false; root.pressed = false }
         onPressed: root.pressed = true
         onReleased: root.pressed = false
-        onClicked: root.togglePanel()
+        onClicked: function(mouse) {
+            if (mouse.button === Qt.RightButton) {
+                Services.Notifications.dndEnabled = !Services.Notifications.dndEnabled
+            } else {
+                root.togglePanel()
+            }
+        }
     }
 }

@@ -10,17 +10,11 @@ Item {
     property ListModel toastModel: ListModel {}
     property ListModel historyModel: ListModel {}
     property int unreadCount: 0
+    property bool dndEnabled: false
 
     NotificationServer {
         id: server
         onNotification: function(notification) {
-            // Play sound
-            playSoundProc.running = true
-            
-            // Add to unread
-            unreadCount++
-            
-            // Add to toasts and history
             var notifData = {
                 "notifId": notification.id,
                 "summary": notification.summary,
@@ -29,9 +23,20 @@ Item {
                 "appIcon": notification.appIcon,
                 "image": notification.image
             }
-            toastModel.append(notifData)
-            // Insert at the top of history
+            
+            // Insert at the top of history unconditionally
             historyModel.insert(0, notifData)
+
+            if (!dndEnabled) {
+                // Play sound
+                playSoundProc.running = true
+                
+                // Add to unread
+                unreadCount++
+                
+                // Add to toasts
+                toastModel.append(notifData)
+            }
         }
     }
 
