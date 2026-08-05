@@ -158,8 +158,10 @@ PopupWindow {
     Process { id: seekProc }
 
     property string loopMode: "None"
-    Process { id: loopSetProc }
-
+    Process {
+        id: loopSetProc
+        onExited: { loopGetProc.running = false; loopGetProc.running = true }
+    }
     Process {
         id: loopGetProc
         command: ["bash", "-lc", "playerctl --ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera loop 2>/dev/null || echo None"]
@@ -172,8 +174,10 @@ PopupWindow {
     }
 
     property bool shuffleMode: false
-    Process { id: shuffleSetProc }
-
+    Process {
+        id: shuffleSetProc
+        onExited: { shuffleGetProc.running = false; shuffleGetProc.running = true }
+    }
     Process {
         id: shuffleGetProc
         command: ["bash", "-lc", "playerctl --ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera shuffle 2>/dev/null || echo Off"]
@@ -189,7 +193,6 @@ PopupWindow {
         const next = (loopMode === "None") ? "Playlist"
                    : (loopMode === "Playlist") ? "Track"
                    : "None"
-        loopMode = next
         loopSetProc.command = ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "loop", next]
         loopSetProc.running = false
         loopSetProc.running = true
@@ -197,7 +200,6 @@ PopupWindow {
 
     function toggleShuffle() {
         const next = shuffleMode ? "Off" : "On"
-        shuffleMode = !shuffleMode
         shuffleSetProc.command = ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "shuffle", next]
         shuffleSetProc.running = false
         shuffleSetProc.running = true

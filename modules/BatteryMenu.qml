@@ -71,7 +71,7 @@ PopupWindow {
 
     Process {
         id: profileRead
-        command: ["bash", "-c", "powerprofilesctl get"]
+        command: ["bash", "-c", "busctl get-property net.hadess.PowerProfiles /net/hadess/PowerProfiles net.hadess.PowerProfiles ActiveProfile | cut -d'\"' -f2"]
         stdout: StdioCollector {
             onStreamFinished: pop.currentProfile = text.trim()
         }
@@ -85,9 +85,9 @@ PopupWindow {
         onTriggered: profileRead.running = true
     }
 
-    Process { id: perfProc; command: ["powerprofilesctl","set","performance"]; onExited: profileRead.running = true }
-    Process { id: balProc; command: ["powerprofilesctl","set","balanced"]; onExited: profileRead.running = true }
-    Process { id: saverProc; command: ["powerprofilesctl","set","power-saver"]; onExited: profileRead.running = true }
+    Process { id: perfProc; command: ["busctl", "set-property", "net.hadess.PowerProfiles", "/net/hadess/PowerProfiles", "net.hadess.PowerProfiles", "ActiveProfile", "s", "performance"]; onExited: profileRead.running = true }
+    Process { id: balProc; command: ["busctl", "set-property", "net.hadess.PowerProfiles", "/net/hadess/PowerProfiles", "net.hadess.PowerProfiles", "ActiveProfile", "s", "balanced"]; onExited: profileRead.running = true }
+    Process { id: saverProc; command: ["busctl", "set-property", "net.hadess.PowerProfiles", "/net/hadess/PowerProfiles", "net.hadess.PowerProfiles", "ActiveProfile", "s", "power-saver"]; onExited: profileRead.running = true }
 
     Rectangle {
         id: mainRect

@@ -12,9 +12,9 @@
         "desc": "Terminal emulator"
     },
     {
-        "name": "NM GUI",
-        "exec": "nmgui",
-        "icon": "network-wireless-symbolic",
+        "name": "Brave",
+        "exec": "brave",
+        "icon": "brave-desktop",
         "desc": "File manager"
     },
     {

@@ -139,6 +139,7 @@ PopupWindow {
     }
 
     property bool isPlaying: false
+    property bool shuffleMode: false
 
     Process {
         id: statProc
@@ -158,9 +159,21 @@ PopupWindow {
     Process { id: nextProc; command: ["playerctl", "next"] }
     Process { id: seekProc }
 
-    property string loopMode: "None"
-    Process { id: loopSetProc }
+    Process {
+        id: shuffleSetProc
+        onExited: { shuffleGetProc.running = false; shuffleGetProc.running = true }
+    }
+    Process {
+        id: shuffleGetProc
+        command: ["bash", "-lc", "playerctl shuffle 2>/dev/null || echo Off"]
+        stdout: StdioCollector { onStreamFinished: pop.shuffleMode = (text.trim() === "On") }
+    }
 
+    property string loopMode: "None"
+    Process {
+        id: loopSetProc
+        onExited: { loopGetProc.running = false; loopGetProc.running = true }
+    }
     Process {
         id: loopGetProc
         command: ["bash", "-lc", "playerctl loop 2>/dev/null || echo None"]
@@ -176,12 +189,16 @@ PopupWindow {
         const next = (loopMode === "None") ? "Playlist"
                    : (loopMode === "Playlist") ? "Track"
                    : "None"
-        loopMode = next
         loopSetProc.command = ["playerctl", "loop", next]
         loopSetProc.running = false
         loopSetProc.running = true
-        loopGetProc.running = false
-        loopGetProc.running = true
+    }
+
+    function toggleShuffle() {
+        const next = shuffleMode ? "Off" : "On"
+        shuffleSetProc.command = ["playerctl", "shuffle", next]
+        shuffleSetProc.running = false
+        shuffleSetProc.running = true
     }
 
     Timer {

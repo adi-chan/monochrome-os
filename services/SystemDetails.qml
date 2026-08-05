@@ -74,7 +74,7 @@ Item {
 
     Process {
         id: hostnameProc
-        command: ["hostname"]
+        command: ["uname", "-n"]
         running: true 
         stdout: StdioCollector {
             onStreamFinished: {

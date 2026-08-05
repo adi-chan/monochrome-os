@@ -123,7 +123,7 @@ Item {
 
                     Connections {
                         target: Hyprland
-                        onFocusedWorkspaceChanged: {
+                        function onFocusedWorkspaceChanged() {
                             if (wsBox.isFocused) {
                                 wsBox.scale = 1
                                 bounceAnim.start()
