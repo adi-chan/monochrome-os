@@ -40,7 +40,7 @@ Item {
     FolderListModel {
         id: folderModel
         folder: "file://" + root.wallpaperDir
-        nameFilters: ["*.jpg", "*.jpeg", "*.png"]
+        nameFilters: ["*.jpg", "*.jpeg", "*.png", "*.webp", "*.gif", "*.JPG", "*.PNG", "*.WEBP", "*.JPEG"]
         showDirs: false
     }
 
@@ -135,7 +135,7 @@ Item {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
-                            Quickshell.execDetached(["swww", "img", filePath])
+                            Quickshell.execDetached(["bash", "-c", "awww img '" + filePath + "' || swww img '" + filePath + "'"])
                         }
                     }
                 }

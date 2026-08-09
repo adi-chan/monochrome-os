@@ -52,48 +52,52 @@ PanelWindow {
     // Visual animated width
     property int visualWidth: showApps ? (panelWidth + appsWidth + sideGap) : panelWidth
     Behavior on visualWidth { 
-        SpringAnimation { 
-            spring: root.showApps ? 3.5 : 5.0
-            damping: root.showApps ? 0.35 : 1.0
-            epsilon: 0.25
+        NumberAnimation { 
+            duration: 300
+            easing.type: Easing.OutExpo
         } 
     }
-    
     
     // Vertical size calculation
     property bool windowLarge: expanded || pinExpanded || closeAnimTimer.running
     implicitHeight: windowLarge ? targetHeight : edgeZoneHeight
-    // Notice: NO Behavior on implicitHeight, so it snaps instantly, which is safer for Wayland surfaces!
     
-    // Slide animation (slides up from the bottom)
+    // Slide animation (slides up smoothly from the bottom)
     property real animY: (expanded || pinExpanded) ? 0 : targetHeight
     Behavior on animY { 
-        SpringAnimation { 
-            spring: root.expanded || root.pinExpanded ? 4.0 : 5.0
-            damping: root.expanded || root.pinExpanded ? 0.28 : 1.0
-            epsilon: 0.25
+        NumberAnimation { 
+            duration: 320
+            easing.type: (root.expanded || root.pinExpanded) ? Easing.OutExpo : Easing.OutCubic
         } 
     }
     
-    // Root hover detection
-    HoverHandler {
-        id: rootHover
-        onHoveredChanged: {
-            if (hovered) {
-                hideTimer.stop()
-                closeAnimTimer.stop()
-                root.expanded = true
-            } else {
-                hideTimer.restart()
+    // Hot Edge Zone (Trigger ONLY when touching/hovering the bottom 10px strip)
+    Item {
+        id: hotEdgeZone
+        anchors {
+            left: parent.left
+            right: parent.right
+            bottom: parent.bottom
+        }
+        height: root.edgeZoneHeight
+        
+        HoverHandler {
+            id: edgeHover
+            onHoveredChanged: {
+                if (hovered) {
+                    hideTimer.stop()
+                    closeAnimTimer.stop()
+                    root.expanded = true
+                }
             }
         }
     }
     
     Timer {
         id: hideTimer
-        interval: 250
+        interval: 200
         onTriggered: {
-            if (!root.pinExpanded && !rootHover.hovered) {
+            if (!root.pinExpanded && (!panelHoverItem.hovered) && (!edgeHover.hovered)) {
                 root.expanded = false
                 root.showApps = false // close drawer when panel closes
                 closeAnimTimer.restart()
@@ -103,13 +107,27 @@ PanelWindow {
     
     Timer {
         id: closeAnimTimer
-        interval: 400 // matches the animY duration
+        interval: 320 // matches animY duration
     }
     
     // The panel container (Animates its width and Y)
     Item {
+        id: panelContainer
         width: root.visualWidth
         height: root.targetHeight
+        
+        // Hover detection on active panel container
+        HoverHandler {
+            id: panelHoverItem
+            onHoveredChanged: {
+                if (hovered) {
+                    hideTimer.stop()
+                    closeAnimTimer.stop()
+                } else if (!edgeHover.hovered) {
+                    hideTimer.restart()
+                }
+            }
+        }
         
         // Slide from bottom to top
         y: root.animY
@@ -117,7 +135,7 @@ PanelWindow {
         // Fade in smoothly as it slides
         opacity: (root.expanded || root.pinExpanded) ? 1 : 0
         Behavior on opacity { 
-            NumberAnimation { duration: 300; easing.type: Easing.OutQuad } 
+            NumberAnimation { duration: 250; easing.type: Easing.OutQuad } 
         }
         
         RowLayout {
