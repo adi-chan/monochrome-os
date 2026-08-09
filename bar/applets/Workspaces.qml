@@ -42,10 +42,10 @@ Item {
 
         Rectangle {
             id: activeIndicator
-            width: 24
+            width: activeItem ? activeItem.width + 12 : 24
             height: 24
             radius: 12
-            color: Services.Theme.isDark ? "#ff0000" : "#d32f2f" // active red
+            color: Services.Theme.isDark ? "#ff2a2a" : "#d32f2f" // brighter red for pop
             
             property int activeIdx: {
                 if (Hyprland.focusedWorkspace) {
@@ -62,6 +62,13 @@ Item {
             y: (bg.height - height) / 2
             
             Behavior on x {
+                NumberAnimation {
+                    duration: 350
+                    easing.type: Easing.OutBack
+                    easing.overshoot: 1.2
+                }
+            }
+            Behavior on width {
                 NumberAnimation {
                     duration: 350
                     easing.type: Easing.OutBack
@@ -92,11 +99,15 @@ Item {
                     property var kanji: ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十"]
                     property string wsText: wid <= 10 ? kanji[wid - 1] : wid.toString()
 
-                    width: 16
+                    width: wsBox.isFocused ? 36 : 16
                     height: 16
                     radius: 8
 
                     color: "transparent"
+
+                    Behavior on width {
+                        NumberAnimation { duration: 350; easing.type: Easing.OutBack; easing.overshoot: 1.2 }
+                    }
 
                     Text {
                         anchors.centerIn: parent

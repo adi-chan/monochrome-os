@@ -214,7 +214,22 @@ Item {
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             z: 0
-            onClicked: root.onOpen()
+            onEntered: {
+                if (!mediaPop || !mediaPop.open) {
+                    root.onOpen()
+                }
+                if (mediaPop) {
+                    mediaPop.buttonHovered = true
+                }
+            }
+            onExited: {
+                if (mediaPop) {
+                    mediaPop.buttonHovered = false
+                }
+            }
+            onClicked: {
+                root.onOpen()
+            }
         }
 
         RowLayout {

@@ -106,14 +106,25 @@ Rectangle {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onEntered: root.hovered = true
-        onExited: { root.hovered = false; root.pressed = false }
+        onEntered: {
+            root.hovered = true
+            if (!panel || !panel.open) {
+                root.open = true
+                Qt.callLater(panel.updatePos)
+            }
+            if (panel) {
+                panel.buttonHovered = true
+            }
+        }
+        onExited: {
+            root.hovered = false
+            root.pressed = false
+            if (panel) {
+                panel.buttonHovered = false
+            }
+        }
         onPressed: root.pressed = true
         onReleased: root.pressed = false
-        onClicked: {
-            root.open = !root.open
-            if (root.open) Qt.callLater(panel.updatePos)
-        }
     }
 
     RightPanel {

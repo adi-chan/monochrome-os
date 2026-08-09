@@ -311,6 +311,70 @@ PanelWindow {
                                         onRequestCollapse: panel.remindersExpanded = false
                                     }
                                 }
+
+                                ColumnLayout {
+                                    Layout.preferredWidth: 260
+                                    Layout.fillHeight: true
+                                    spacing: 12
+
+                                    Rectangle {
+                                        Layout.fillWidth: true
+                                        Layout.preferredHeight: 180
+                                        radius: 12
+                                        color: Services.Theme.bg
+                                        border.color: Services.Theme.border
+                                        border.width: 1
+
+                                        AnimatedImage {
+                                            anchors.fill: parent
+                                            anchors.margins: 8
+                                            source: "file:///home/nick/.config/quickshell/assets/point.gif"
+                                            fillMode: Image.PreserveAspectFit
+                                            playing: true
+                                        }
+                                    }
+
+                                    Rectangle {
+                                        id: perfRingsPlaceholder
+                                        Layout.fillWidth: true
+                                        Layout.fillHeight: true
+                                        radius: 12
+                                        color: Services.Theme.bg
+                                        border.color: Services.Theme.border
+                                        border.width: 1
+
+                                        RowLayout {
+                                            anchors.fill: parent
+                                            anchors.margins: 12
+                                            spacing: 12
+
+                                            PerfRing {
+                                                Layout.fillWidth: true
+                                                Layout.fillHeight: true
+                                                targetValue: Services.SystemDetails.cpuUsage
+                                                ringColor: "#89b4fa" // blue
+                                                icon: " "
+                                                subText: Math.round(Services.SystemDetails.cpuUsage) + "%"
+                                            }
+                                            PerfRing {
+                                                Layout.fillWidth: true
+                                                Layout.fillHeight: true
+                                                targetValue: Services.SystemDetails.ramUsage
+                                                ringColor: "#a6e3a1" // green
+                                                icon: " "
+                                                subText: Services.SystemDetails.ramText
+                                            }
+                                            PerfRing {
+                                                Layout.fillWidth: true
+                                                Layout.fillHeight: true
+                                                targetValue: Services.SystemDetails.diskUsage
+                                                ringColor: "#f38ba8" // red
+                                                icon: "󰋊 "
+                                                subText: Services.SystemDetails.diskText
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
 

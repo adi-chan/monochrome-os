@@ -106,13 +106,16 @@ Rectangle {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onEntered: root.hovered = true
+        onEntered: { 
+            root.hovered = true
+            if (!root.open) {
+                root.open = true
+                Qt.callLater(panel.updatePos)
+            }
+        }
         onExited: { root.hovered = false; root.pressed = false }
         onPressed: root.pressed = true
         onReleased: root.pressed = false
-        onClicked: {
-            root.open = !root.open
-            if (root.open) Qt.callLater(panel.updatePos)
         }
     }
 

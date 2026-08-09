@@ -24,6 +24,12 @@ Rectangle {
     property var panelWin: null
     property bool hasPendingReminder: false
 
+    onHoveredChanged: {
+        if (panelWin) {
+            panelWin.buttonHovered = root.hovered
+        }
+    }
+
     Services.ReminderService {
         id: reminderService
         onRemindersUpdated: root.checkReminders()
@@ -171,10 +177,23 @@ Rectangle {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onEntered: root.hovered = true
-        onExited: { root.hovered = false; root.pressed = false }
+        onEntered: {
+            root.hovered = true
+            if (!root.panelWin || !root.panelWin.isOpen) {
+                root.togglePanel()
+            }
+            if (root.panelWin) {
+                root.panelWin.buttonHovered = true
+            }
+        }
+        onExited: {
+            root.hovered = false
+            root.pressed = false
+            if (root.panelWin) {
+                root.panelWin.buttonHovered = false
+            }
+        }
         onPressed: root.pressed = true
         onReleased: root.pressed = false
-        onClicked: root.togglePanel()
     }
 }

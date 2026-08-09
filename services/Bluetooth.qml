@@ -14,9 +14,6 @@ Item {
     function refresh() {
         poweredProc.running = false
         poweredProc.running = true
-
-        connectedDevProc.running = false
-        connectedDevProc.running = true
     }
 
     Timer {
@@ -39,6 +36,12 @@ Item {
                 if (!root.powered) {
                     root.connected = false
                     root.deviceName = ""
+                }
+                
+                // Only fetch connected device if bluetooth is actually powered on
+                if (root.powered) {
+                    connectedDevProc.running = false
+                    connectedDevProc.running = true
                 }
             }
         }

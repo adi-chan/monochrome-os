@@ -14,7 +14,19 @@ Item {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
 
-        onClicked: root.open = !root.open
+        onEntered: {
+            if (!root.open) {
+                root.open = true
+            }
+            if (menu) {
+                menu.buttonHovered = true
+            }
+        }
+        onExited: {
+            if (menu) {
+                menu.buttonHovered = false
+            }
+        }
     }
 
     implicitHeight: 28

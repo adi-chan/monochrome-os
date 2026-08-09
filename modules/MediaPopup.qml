@@ -55,9 +55,32 @@ PopupWindow {
         if (closing) return
         closing = true
         requestClose()
-        focusGrab.active = false
         openAnim.stop()
         closeAnim.restart()
+    }
+
+    HoverHandler {
+        id: rootHover
+    }
+
+    property bool buttonHovered: false
+    property bool contentHovered: rootHover.hovered
+    property bool shouldBeOpen: buttonHovered || contentHovered
+    
+    onShouldBeOpenChanged: {
+        if (!shouldBeOpen) {
+            closeTimer.restart()
+        } else {
+            closeTimer.stop()
+        }
+    }
+    
+    Timer {
+        id: closeTimer
+        interval: 150
+        onTriggered: {
+            if (pop.open) pop.playCloseAnim()
+        }
     }
 
     onVisibleChanged: {
@@ -65,35 +88,14 @@ PopupWindow {
     }
 
     onOpenChanged: {
-        if (!open && visible && !closing) playCloseAnim()
-    }
-
-    LazyLoader {
-        id: backdropLoader
-        activeAsync: pop.open || pop.closing
-
-        PanelWindow {
-            id: backdrop
-            color: "transparent"
-            visible: true
-            exclusiveZone: -1
-            anchors { top: true; bottom: true; left: true; right: true }
-
-            MouseArea {
-                anchors.fill: parent
-                acceptedButtons: Qt.AllButtons
-                hoverEnabled: true
-                onPressed: pop.playCloseAnim()
-            }
+        if (open) {
+            playOpenAnim()
+        } else if (visible && !closing) {
+            playCloseAnim()
         }
     }
 
-    HyprlandFocusGrab {
-        id: focusGrab
-        windows: [ pop ]
-        active: pop.visible && !pop.closing
-        onCleared: pop.playCloseAnim()
-    }
+    // Backdrop and focus grab removed for pure hover functionality
 
     ParallelAnimation {
         id: openAnim
@@ -347,6 +349,7 @@ PopupWindow {
             }
 
             MouseArea {
+                id: contentMouseArea
                 anchors.fill: parent
                 z: 0
                 acceptedButtons: Qt.AllButtons
@@ -368,10 +371,11 @@ PopupWindow {
                     Layout.alignment: Qt.AlignVCenter
 
                     ClippingRectangle {
+                        id: vinyl
                         anchors.centerIn: parent
                         width: 86
                         height: 86
-                        radius: 12
+                        radius: 8
                         antialiasing: true
                         layer.enabled: true
                         layer.smooth: true

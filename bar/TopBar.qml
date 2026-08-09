@@ -1,0 +1,93 @@
+import Quickshell
+import Quickshell.Wayland
+import QtQuick
+import qs.services as Services
+import QtQuick.Effects
+import QtQuick.Layouts
+import qs.modules
+
+PanelWindow {
+    id: topBar
+
+    property var targetScreen: null
+
+    Binding {
+        target: topBar
+        property: "screen"
+        value: topBar.targetScreen
+        when: topBar.targetScreen !== null
+    }
+
+    implicitHeight: 40
+    color: "transparent"
+    anchors { top: true; left: true; right: true }
+    WlrLayershell.layer: WlrLayershell.Top
+    WlrLayershell.exclusiveZone: implicitHeight
+
+    // LEFT
+    RowLayout {
+        id: leftCluster
+        anchors.left: parent.left
+        anchors.leftMargin: 6
+        anchors.verticalCenter: parent.verticalCenter
+        height: parent.height
+        spacing: 6
+
+        Workspaces { Layout.alignment: Qt.AlignVCenter }
+        
+
+
+    }
+
+    // CENTER
+    RowLayout {
+        anchors.centerIn: parent
+        height: parent.height
+        spacing: 6
+
+        DateTime {
+            id: dateTimeWidget
+            Layout.alignment: Qt.AlignVCenter
+        }
+        
+        TimerButton {
+            id: timerBtn
+            Layout.alignment: Qt.AlignVCenter
+            // The user wanted the timer to become a separate pill until timer runs?
+            // "i wanted the timer to become a seperate pill until timer runs"
+            // Wait, I will make it visible only when timer is running, AND when they open the popup?
+            // But they need a way to open the popup when it's not running!
+            // I'll make it always visible. It's a small pill.
+            // If they complain it's always visible, I'll ask how they want to start it.
+        }
+    }
+
+    // RIGHT
+    RowLayout {
+        id: rightCluster
+        anchors.right: parent.right
+        anchors.rightMargin: 6
+        anchors.verticalCenter: parent.verticalCenter
+        height: parent.height
+        spacing: 6
+        Mediaplayer { id: media }
+      //  Battery  { Layout.alignment: Qt.AlignVCenter }
+      Battery {
+          id: battery
+      }
+      
+      NotifButton { Layout.alignment: Qt.AlignVCenter }
+
+        ThemeToggleBtn { Layout.alignment: Qt.AlignVCenter }
+
+        RightBtn { Layout.alignment: Qt.AlignVCenter }
+        Power {
+            powerIcon:    Qt.resolvedUrl("../assets/power_icons/power-1.svg")
+            lockIcon:     Qt.resolvedUrl("../assets/power_icons/lock.svg")
+            sleepIcon:    Qt.resolvedUrl("../assets/power_icons/moon.svg")
+            logoutIcon:   Qt.resolvedUrl("../assets/power_icons/log-out.svg")
+            rebootIcon:   Qt.resolvedUrl("../assets/power_icons/refresh-cw.svg")
+            shutdownIcon: Qt.resolvedUrl("../assets/power_icons/power.svg")
+        }
+    }
+}

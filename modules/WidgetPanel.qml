@@ -7,6 +7,7 @@ import Quickshell.Hyprland
 import qs.modules.datetimepanel
 import qs.modules
 import qs.services as Services
+import Quickshell.Io
 
 PanelWindow {
     id: panel
@@ -22,12 +23,38 @@ PanelWindow {
     property int pageIndex: 0
     property bool remindersExpanded: false
     property bool isOpen: false
+    property string customGifPath: ""
+    property bool showGifInput: false
+
+    Process {
+        id: loadGifPathProc
+        command: ["bash", "-c", "cat ~/.config/quickshell/assets/dash_gif_path.txt 2>/dev/null || echo ''"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let p = this.text.trim()
+                if (p.length > 0) panel.customGifPath = p
+            }
+        }
+    }
+
+    Process {
+        id: saveGifPathProc
+        running: false
+    }
+
+    onCustomGifPathChanged: {
+        saveGifPathProc.running = false
+        saveGifPathProc.command = ["bash", "-c", "echo '" + panel.customGifPath + "' > ~/.config/quickshell/assets/dash_gif_path.txt"]
+        saveGifPathProc.running = true
+    }
+    Component.onCompleted: loadGifPathProc.running = true
 
     function togglePanelAnimation() {
         if (isOpen) {
             isOpen = false
             hideTimer.start()
         } else {
+            hideTimer.stop()
             panel.visible = true
             isOpen = true
         }
@@ -60,7 +87,7 @@ PanelWindow {
     property real shadowBlur: 0.55
     property int shadowOffsetY: 6
 
-    property int contentW: 660
+    property int contentW: 980
     property int contentH: 330
 
     implicitWidth: contentW + shadowPad * 2
@@ -73,26 +100,30 @@ PanelWindow {
     property int contentPadding: 12
     property int tabsTopGap: -6
 
-    PanelWindow {
-        id: backdrop
-        color: "transparent"
-        visible: panel.visible
-        exclusiveZone: -1
-        anchors { top: true; bottom: true; left: true; right: true }
+    // Backdrop and focus grab removed for pure hover functionality
 
-        MouseArea {
-            anchors.fill: parent
-            acceptedButtons: Qt.AllButtons
-            hoverEnabled: true
-            onPressed: if (panel.isOpen) panel.togglePanelAnimation()
-        }
+    HoverHandler {
+        id: rootHover
     }
 
-    HyprlandFocusGrab {
-        id: focusGrab
-        windows: [ panel ]
-        active: panel.visible
-        onCleared: if (panel.isOpen) panel.togglePanelAnimation()
+    property bool buttonHovered: false
+    property bool contentHovered: rootHover.hovered
+    property bool shouldBeOpen: buttonHovered || contentHovered
+    
+    onShouldBeOpenChanged: {
+        if (!shouldBeOpen) {
+            closeTimer.restart()
+        } else {
+            closeTimer.stop()
+        }
+    }
+    
+    Timer {
+        id: closeTimer
+        interval: 150
+        onTriggered: {
+            if (panel.isOpen) panel.togglePanelAnimation()
+        }
     }
 
     Item {
@@ -143,6 +174,7 @@ PanelWindow {
             antialiasing: true
 
             MouseArea {
+                id: contentMouseArea
                 anchors.fill: parent
                 acceptedButtons: Qt.AllButtons
                 hoverEnabled: true
@@ -316,10 +348,11 @@ PanelWindow {
 
                                 ColumnLayout {
                                     Layout.preferredWidth: 320
-                                    Layout.fillHeight: true
+                                    Layout.alignment: Qt.AlignVCenter
 
                                     Calendar {
-                                        anchors.fill: parent
+                                        Layout.fillWidth: true
+                                        Layout.preferredHeight: 250
                                         onDateClicked: (year, month, day) => {
                                             addReminderPopup.show(year, month, day)
                                         }
@@ -328,13 +361,41 @@ PanelWindow {
 
                                 Item {
                                     Layout.fillWidth: true
-                                    Layout.fillHeight: true
+                                    Layout.minimumWidth: 240
+                                    Layout.preferredHeight: 250
+                                    Layout.alignment: Qt.AlignVCenter
 
                                     Reminders {
                                         anchors.fill: parent
                                         expanded: panel.remindersExpanded
                                         onRequestExpand: panel.remindersExpanded = true
                                         onRequestCollapse: panel.remindersExpanded = false
+                                    }
+                                }
+
+                                ColumnLayout {
+                                    Layout.maximumWidth: 300
+                                    Layout.preferredWidth: Math.min(300, dashGif.implicitWidth + 16)
+                                    Layout.preferredHeight: 250
+                                    Layout.alignment: Qt.AlignVCenter
+                                    spacing: 8
+
+                                    Rectangle {
+                                        Layout.fillWidth: true
+                                        Layout.fillHeight: true
+                                        radius: 12
+                                        color: Services.Theme.bg
+                                        border.color: Services.Theme.border
+                                        border.width: 1
+
+                                        AnimatedImage {
+                                            id: dashGif
+                                            anchors.fill: parent
+                                            anchors.margins: 8
+                                            source: panel.customGifPath === "" ? "file:///home/nick/.config/quickshell/assets/point.gif" : panel.customGifPath
+                                            fillMode: Image.PreserveAspectFit
+                                            playing: true
+                                        }
                                     }
                                 }
                             }

@@ -18,7 +18,7 @@ PopupWindow {
     property color textSub: Services.Theme.subtext
     property bool open: false
     property Item anchorItem: null
-    property int gap: 6
+    property int gap: 12
     signal requestClose()
 
     visible: (open && anchorItem !== null) || closing
@@ -42,6 +42,30 @@ PopupWindow {
     property real animScale: 1
     property real animOpacity: 1
     property bool closing: false
+
+    HoverHandler {
+        id: rootHover
+    }
+
+    property bool buttonHovered: false
+    property bool contentHovered: rootHover.hovered
+    property bool shouldBeOpen: buttonHovered || contentHovered
+    
+    onShouldBeOpenChanged: {
+        if (!shouldBeOpen) {
+            closeTimer.restart()
+        } else {
+            closeTimer.stop()
+        }
+    }
+    
+    Timer {
+        id: closeTimer
+        interval: 150
+        onTriggered: {
+            if (pop.open) pop.playCloseAnim()
+        }
+    }
     implicitWidth: contentW + shadowPad
     implicitHeight: contentH + shadowPad * 2
 
@@ -56,7 +80,6 @@ PopupWindow {
     function playCloseAnim() {
         if (closing) return
         closing = true
-        focusGrab.active = false
         requestClose()
         closeAnim.restart()
     }
@@ -64,7 +87,11 @@ PopupWindow {
     function updatePos() {}
 
     onOpenChanged: {
-        if (!open && visible && !closing) playCloseAnim()
+        if (open) {
+            playOpenAnim()
+        } else if (visible && !closing) {
+            playCloseAnim()
+        }
     }
 
     onVisibleChanged: {
@@ -72,32 +99,7 @@ PopupWindow {
     }
 
     // ===== BACKDROP =====
-    LazyLoader {
-        id: backdropLoader
-        activeAsync: pop.visible
-
-        PanelWindow {
-            color: "transparent"
-            visible: true
-            exclusiveZone: -1
-            anchors { top: true; bottom: true; left: true; right: true }
-
-            MouseArea {
-                anchors.fill: parent
-                acceptedButtons: Qt.AllButtons
-                hoverEnabled: true
-                onPressed: pop.playCloseAnim()
-            }
-        }
-    }
-
-    // ===== Focus Grab / Escape =====
-    HyprlandFocusGrab {
-        id: focusGrab
-        windows: [ pop ]
-        active: pop.visible && !pop.closing
-        onCleared: pop.playCloseAnim()
-    }
+    // Backdrop and focus grab removed for pure hover functionality
 
     Item {
         anchors.fill: parent
@@ -137,7 +139,7 @@ PopupWindow {
         function onAnchoring() {
             if (!pop.anchorItem) return
             pop.anchor.rect.x = Math.round(pop.anchorItem.width - pop.contentW)
-            pop.anchor.rect.y = Math.round(pop.anchorItem.height + pop.gap - pop.shadowPad)
+            pop.anchor.rect.y = Math.round(pop.anchorItem.height + 8 - pop.shadowPad)
             pop.anchor.rect.width = 1
             pop.anchor.rect.height = 1
         }
@@ -156,7 +158,7 @@ PopupWindow {
         scale: pop.animScale
         opacity: pop.animOpacity
         transformOrigin: Item.Top
-
+        
         Rectangle {
             anchors.fill: parent
             radius: pop.panelRadius
@@ -185,6 +187,7 @@ PopupWindow {
             antialiasing: true
 
             MouseArea {
+                id: contentMouseArea
                 anchors.fill: parent
                 acceptedButtons: Qt.AllButtons
                 hoverEnabled: true

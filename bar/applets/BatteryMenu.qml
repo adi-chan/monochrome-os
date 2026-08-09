@@ -12,6 +12,7 @@ import qs.panels.Launchers
 import qs.panels.Notifications
 import qs.panels.Media
 import qs.panels.OSD
+import qs.modules
 
 
 PopupWindow {
@@ -106,7 +107,7 @@ PopupWindow {
         opacity: pop.open ? 1.0 : 0.0
         scale: pop.open ? 1.0 : 0.85
         transformOrigin: Item.Top
-
+        
         transform: Rotation {
             origin.x: mainRect.width / 2
             origin.y: 0

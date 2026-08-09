@@ -87,25 +87,25 @@ Item {
             }
         }
 
-        GridView {
-            id: grid
+        ListView {
+            id: carousel
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.margins: 16
             clip: true
             
+            orientation: ListView.Horizontal
+            spacing: 20
             model: folderModel
-            cellWidth: Math.floor(width / 3)
-            cellHeight: 130
 
             delegate: Item {
-                width: grid.cellWidth
-                height: grid.cellHeight
+                width: 280
+                height: carousel.height
 
                 Rectangle {
                     anchors.fill: parent
                     anchors.margins: 6
-                    radius: 10
+                    radius: 14
                     color: Services.Theme.bg
                     clip: true
 
@@ -117,6 +117,16 @@ Item {
                         source: "file://" + filePath
                         fillMode: Image.PreserveAspectCrop
                         asynchronous: true
+                        mipmap: true
+                        smooth: true
+                    }
+
+                    Rectangle {
+                        anchors.fill: parent
+                        color: "transparent"
+                        border.color: Services.Theme.border
+                        border.width: 1
+                        radius: 14
                     }
 
                     MouseArea {
@@ -125,7 +135,7 @@ Item {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
-                            Quickshell.execDetached(["awww", "img", filePath])
+                            Quickshell.execDetached(["swww", "img", filePath])
                         }
                     }
                 }

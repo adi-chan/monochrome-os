@@ -103,15 +103,27 @@ Rectangle {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         acceptedButtons: Qt.LeftButton | Qt.RightButton
-        onEntered: root.hovered = true
-        onExited: { root.hovered = false; root.pressed = false }
+        onEntered: {
+            root.hovered = true
+            if (!root.panelWin || !root.panelWin.isOpen) {
+                root.togglePanel()
+            }
+            if (root.panelWin) {
+                root.panelWin.buttonHovered = true
+            }
+        }
+        onExited: {
+            root.hovered = false
+            root.pressed = false
+            if (root.panelWin) {
+                root.panelWin.buttonHovered = false
+            }
+        }
         onPressed: root.pressed = true
         onReleased: root.pressed = false
         onClicked: function(mouse) {
             if (mouse.button === Qt.RightButton) {
                 Services.Notifications.dndEnabled = !Services.Notifications.dndEnabled
-            } else {
-                root.togglePanel()
             }
         }
     }

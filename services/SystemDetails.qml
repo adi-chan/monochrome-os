@@ -143,4 +143,68 @@ Item {
         }
     }
 
+    property real cpuUsage: 0
+    property real ramUsage: 0
+    property real diskUsage: 0
+    property string diskText: ""
+    property string ramText: ""
+
+    Timer {
+        interval: 3000
+        running: true
+        repeat: true
+        onTriggered: {
+            cpuProc.running = true
+            ramProc.running = true
+            diskProc.running = true
+        }
+    }
+
+    Process {
+        id: cpuProc
+        command: ["bash", "-c", "top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}'"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let v = parseFloat(text.trim())
+                if (!isNaN(v)) root.cpuUsage = v
+            }
+        }
+    }
+
+    Process {
+        id: ramProc
+        command: ["bash", "-c", "free | grep Mem | awk '{print $3/$2 * 100.0, $3}'"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let parts = text.trim().split(" ")
+                if (parts.length >= 2) {
+                    let pct = parseFloat(parts[0])
+                    let usedBytes = parseFloat(parts[1]) * 1024
+                    if (!isNaN(pct)) root.ramUsage = pct
+                    
+                    let gb = (usedBytes / (1024*1024*1024)).toFixed(1)
+                    root.ramText = gb + "GB"
+                }
+            }
+        }
+    }
+
+    Process {
+        id: diskProc
+        command: ["bash", "-c", "df / | tail -1 | awk '{print $5, $3}'"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let parts = text.trim().split(" ")
+                if (parts.length >= 2) {
+                    let pct = parseFloat(parts[0].replace('%',''))
+                    let usedK = parseFloat(parts[1])
+                    if (!isNaN(pct)) root.diskUsage = pct
+                    
+                    let gb = (usedK / (1024*1024)).toFixed(1)
+                    root.diskText = gb + "GB"
+                }
+            }
+        }
+    }
+
 }

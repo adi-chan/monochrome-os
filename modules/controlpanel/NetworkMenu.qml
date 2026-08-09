@@ -6,13 +6,14 @@ import QtQuick.Effects
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
+import qs.modules
 
 PopupWindow {
     id: menu
 
     property bool open: false
     property Item anchorItem: null
-    property int gap: 10
+    property int gap: 12
     signal requestClose()
 
     visible: (open && anchorItem !== null) || closing
@@ -213,7 +214,7 @@ PopupWindow {
         function onAnchoring() {
             if (!menu.anchorItem) return
             menu.anchor.rect.x = Math.round(menu.anchorItem.width / 2 - menu.width / 2)
-            menu.anchor.rect.y = Math.round(menu.anchorItem.height + menu.gap - menu.shadowPad)
+            menu.anchor.rect.y = Math.round(menu.anchorItem.height + 8 - menu.shadowPad)
             menu.anchor.rect.width = 1
             menu.anchor.rect.height = 1
         }

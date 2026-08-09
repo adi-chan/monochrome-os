@@ -337,13 +337,22 @@ PopupWindow {
                     Layout.alignment: Qt.AlignVCenter
 
                     ClippingRectangle {
+                        id: vinyl
                         anchors.centerIn: parent
                         width: 83
                         height: 83
-                        radius: 10
+                        radius: width / 2
                         antialiasing: true
                         layer.enabled: true
                         layer.smooth: true
+
+                        RotationAnimator on rotation {
+                            from: 0
+                            to: 360
+                            duration: 4000
+                            loops: Animation.Infinite
+                            running: pop.isPlaying
+                        }
 
                         Rectangle { anchors.fill: parent; color: coverFallback }
 
@@ -354,6 +363,16 @@ PopupWindow {
                             smooth: true
                             mipmap: true
                             visible: (m.artUrl && m.artUrl.length > 0)
+                        }
+
+                        Rectangle {
+                            width: 16
+                            height: 16
+                            radius: 8
+                            color: Services.Theme.bgSolid
+                            anchors.centerIn: parent
+                            border.width: 1
+                            border.color: Services.Theme.border
                         }
                     }
                 }

@@ -22,8 +22,37 @@ PopupWindow {
         interval: 800
     }
 
+    onVisibleChanged: {
+        if (!visible && pop.open) requestClose()
+    }
+
+    HoverHandler {
+        id: rootHover
+    }
+
+    property bool buttonHovered: false
+    property bool contentHovered: rootHover.hovered
+    property bool shouldBeOpen: buttonHovered || contentHovered
+    
+    onShouldBeOpenChanged: {
+        if (!shouldBeOpen) {
+            closeTimer.restart()
+        } else {
+            closeTimer.stop()
+        }
+    }
+    
+    Timer {
+        id: closeTimer
+        interval: 150
+        onTriggered: {
+            if (pop.open) requestClose()
+        }
+    }
+
     onOpenChanged: {
         if (!open && anchorItem !== null) hideTimer.start()
+        else hideTimer.stop()
     }
 
     visible: (open || hideTimer.running) && anchorItem !== null
@@ -34,27 +63,7 @@ PopupWindow {
 
     anchor.item: anchorItem
 
-    PanelWindow {
-        id: backdrop
-        color: "transparent"
-        visible: pop.visible
-        exclusiveZone: -1
-        anchors { top: true; bottom: true; left: true; right: true }
-
-        MouseArea {
-            anchors.fill: parent
-            acceptedButtons: Qt.AllButtons
-            hoverEnabled: true
-            onPressed: pop.requestClose()
-        }
-    }
-
-    HyprlandFocusGrab {
-        id: focusGrab
-        windows: [ pop ]
-        active: pop.visible
-        onCleared: pop.requestClose()
-    }
+    // Backdrop and focus grab removed for pure hover functionality
 
     Connections {
         target: pop.anchor
@@ -123,8 +132,10 @@ PopupWindow {
         }
 
         MouseArea {
+            id: contentMouseArea
             anchors.fill: parent
             acceptedButtons: Qt.AllButtons
+            hoverEnabled: true
         }
 
         Column {

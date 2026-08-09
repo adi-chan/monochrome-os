@@ -22,6 +22,7 @@ PanelWindow {
             isOpen = false
             hideTimer.start()
         } else {
+            hideTimer.stop()
             panel.visible = true
             isOpen = true
         }
@@ -49,27 +50,31 @@ PanelWindow {
     anchors { top: true; bottom: false; left: false; right: true }
     margins { top: 6 - shadowPad; right: 16 - shadowPad }
 
-    PanelWindow {
-        id: backdrop
-        color: "transparent"
-        visible: panel.visible
-        exclusiveZone: -1
-        anchors { top: true; bottom: true; left: true; right: true }
+    HoverHandler {
+        id: rootHover
+    }
 
-        MouseArea {
-            anchors.fill: parent
-            acceptedButtons: Qt.AllButtons
-            hoverEnabled: true
-            onPressed: if (panel.isOpen) panel.togglePanelAnimation()
+    property bool buttonHovered: false
+    property bool contentHovered: rootHover.hovered
+    property bool shouldBeOpen: buttonHovered || contentHovered
+    
+    onShouldBeOpenChanged: {
+        if (!shouldBeOpen) {
+            closeTimer.restart()
+        } else {
+            closeTimer.stop()
+        }
+    }
+    
+    Timer {
+        id: closeTimer
+        interval: 150
+        onTriggered: {
+            if (panel.isOpen) panel.togglePanelAnimation()
         }
     }
 
-    HyprlandFocusGrab {
-        id: focusGrab
-        windows: [ panel ]
-        active: panel.visible
-        onCleared: if (panel.isOpen) panel.togglePanelAnimation()
-    }
+    // Backdrop and focus grab removed for pure hover functionality
 
     // Processes removed for dunstctl
 
@@ -120,6 +125,7 @@ PanelWindow {
             antialiasing: true
 
             MouseArea {
+                id: contentMouseArea
                 anchors.fill: parent
                 acceptedButtons: Qt.AllButtons
                 hoverEnabled: true

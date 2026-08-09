@@ -178,10 +178,14 @@ Rectangle {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onEntered: root.hovered = true
+        onEntered: { 
+            root.hovered = true
+            if (!root.panelWin || !root.panelWin.isOpen) {
+                root.togglePanel()
+            }
+        }
         onExited: { root.hovered = false; root.pressed = false }
         onPressed: root.pressed = true
         onReleased: root.pressed = false
-        onClicked: root.togglePanel()
     }
 }
