@@ -23,8 +23,14 @@ Rectangle {
     property int lastKnownCount: 0
     property bool hasUnread: Services.Notifications.unreadCount > 0
 
-    onHasUnreadChanged: {
-        if (hasUnread) jingleAnim.start()
+    Connections {
+        target: Services.Notifications
+        function onUnreadCountChanged() {
+            if (Services.Notifications.unreadCount > 0 && Services.Notifications.unreadCount > root.lastKnownCount) {
+                jingleAnim.restart()
+            }
+            root.lastKnownCount = Services.Notifications.unreadCount
+        }
     }
 
     scale: pressed ? 0.985 : (hovered ? 1.03 : 1.0)

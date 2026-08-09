@@ -79,9 +79,9 @@ Rectangle {
         stdout: StdioCollector {
             onStreamFinished: {
                 let status = text.trim()
-                if (status === "1") {
+                if (status.endsWith("1")) {
                     root.hasUnread = true
-                    jingleAnim.start()
+                    jingleAnim.restart()
                 }
             }
         }
@@ -129,14 +129,10 @@ Rectangle {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onEntered: { 
-            root.hovered = true
-            if (!root.panelWin || !root.panelWin.isOpen) {
-                root.togglePanel()
-            }
-        }
+        onEntered: root.hovered = true
         onExited: { root.hovered = false; root.pressed = false }
         onPressed: root.pressed = true
         onReleased: root.pressed = false
+        onClicked: root.togglePanel()
     }
 }
