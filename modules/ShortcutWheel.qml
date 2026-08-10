@@ -83,7 +83,7 @@ PanelWindow {
                             editSlotProc.command = ["bash", "-c", "echo " + pop.selectedIndex + " > /tmp/qs_edit_slot && touch /tmp/qs_toggle_launcher"];
                             editSlotProc.running = true;
                         } else {
-                            launchProc.command = ["hyprctl", "dispatch", "exec", pop.wheelApps[pop.selectedIndex].exec];
+                            launchProc.command = ["hyprctl", "dispatch", "hl.dsp.exec_cmd(\"" + pop.wheelApps[pop.selectedIndex].exec.replace(/\\/g, "\\\\").replace(/"/g, "\\\"") + "\")"];
                             launchProc.running = true;
                         }
                     }
@@ -180,7 +180,7 @@ PanelWindow {
 
             // Failsafe: if stuck open, clicking an app launches it.
             if (pop.selectedIndex >= 0 && pop.selectedIndex < pop.wheelApps.length) {
-                launchProc.command = ["hyprctl", "dispatch", "exec", pop.wheelApps[pop.selectedIndex].exec];
+                launchProc.command = ["hyprctl", "dispatch", "hl.dsp.exec_cmd(\"" + pop.wheelApps[pop.selectedIndex].exec.replace(/\\/g, "\\\\").replace(/"/g, "\\\"") + "\")"];
                 launchProc.running = true;
             }
             forceCloseProc.running = true;

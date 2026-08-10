@@ -56,7 +56,7 @@ PanelWindow {
     // ---------- commands ----------
     property var lockCommand: ["qs", "ipc", "call", "lockscreen", "lock"]
     property var sleepCommand:    ["systemctl", "suspend"]
-    property var logoutCommand:   ["hyprctl", "dispatch", "exit"]
+    property var logoutCommand:   ["hyprctl", "dispatch", "hl.dsp.exit()"]
     property var rebootCommand:   ["systemctl", "reboot"]
     property var shutdownCommand: ["systemctl", "poweroff"]
 

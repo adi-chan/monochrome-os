@@ -56,7 +56,7 @@ Item {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
                         launchProc.running = false
-                        launchProc.command = ["hyprctl", "dispatch", "exec", btn.cmd]
+                        launchProc.command = ["hyprctl", "dispatch", "hl.dsp.exec_cmd(\"" + btn.cmd.replace(/\\/g, "\\\\").replace(/"/g, "\\\"") + "\")"]
                         launchProc.running = true
                     }
                 }

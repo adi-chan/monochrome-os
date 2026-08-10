@@ -228,7 +228,7 @@ PanelWindow {
                                     saveWheelSlotProc.command = ["python3", "/home/nick/.config/quickshell/scripts/update_wheel_slot.py", pop.editSlotIndex.toString(), app.name, app.exec, app.icon || ""];
                                     saveWheelSlotProc.running = true;
                                 } else {
-                                    launchProc.command = ["hyprctl", "dispatch", "exec", app.exec];
+                                    launchProc.command = ["hyprctl", "dispatch", "hl.dsp.exec_cmd(\"" + app.exec.replace(/\\/g, "\\\\").replace(/"/g, "\\\"") + "\")"];
                                     launchProc.running = true;
                                 }
                                 pop.open = false;
@@ -335,7 +335,7 @@ PanelWindow {
                                 saveWheelSlotProc.command = ["python3", "/home/nick/.config/quickshell/scripts/update_wheel_slot.py", pop.editSlotIndex.toString(), app.name, app.exec, app.icon || ""];
                                 saveWheelSlotProc.running = true;
                             } else {
-                                launchProc.command = ["hyprctl", "dispatch", "exec", app.exec];
+                                launchProc.command = ["hyprctl", "dispatch", "hl.dsp.exec_cmd(\"" + app.exec.replace(/\\/g, "\\\\").replace(/"/g, "\\\"") + "\")"];
                                 launchProc.running = true;
                             }
                             pop.open = false;
