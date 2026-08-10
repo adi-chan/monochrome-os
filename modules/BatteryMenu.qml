@@ -175,13 +175,13 @@ PopupWindow {
                 }
 
                 IconBtn {
-                    icon: "󰂄"   // battery
+                    icon: ""   // balanced (libra scale)
                     active: pop.currentProfile === "balanced"
                     onClicked: balProc.running = true
                 }
 
                 IconBtn {
-                    icon: "󰖔"   // moon saver
+                    icon: "󰌪"   // power-saver (leaf)
                     active: pop.currentProfile === "power-saver"
                     onClicked: saverProc.running = true
                 }
@@ -214,6 +214,7 @@ PopupWindow {
             text: btn.icon
             color: btn.active ? Services.Theme.bgSolid : Services.Theme.text
             font.pixelSize: 22
+            font.family: "Hack Nerd Font"
             font.bold: true
             scale: btn.active ? 1.25 : 1.0
             

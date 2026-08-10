@@ -6,18 +6,42 @@ import Quickshell.Io
 Item {
     id: root
 
-    property string connectedSsid: "No Internet"
+    property string ssid: ""
     property int signalStrength: 0 // 0–100 %
+    property bool wifiEnabled: true
 
-    readonly property bool connected: connectedSsid !== "No Internet" && connectedSsid.length > 0
+    readonly property bool connected: ssid.length > 0 && wifiEnabled
+
+    function toggleWifi() {
+        var cmd = wifiEnabled ? "nmcli radio wifi off" : "nmcli radio wifi on"
+        toggleProc.command = ["bash", "-c", cmd]
+        toggleProc.running = false
+        toggleProc.running = true
+        wifiEnabled = !wifiEnabled
+    }
+
+    Process { id: toggleProc }
 
     Timer {
-        interval: 3000
+        interval: 2500
         repeat: true
         running: true
+        triggeredOnStart: true
         onTriggered: {
+            radioProc.running = false
+            radioProc.running = true
             connectedSsidProc.running = false
             connectedSsidProc.running = true
+        }
+    }
+
+    Process {
+        id: radioProc
+        command: ["bash", "-c", "nmcli radio wifi"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                root.wifiEnabled = (text.trim().toLowerCase() === "enabled")
+            }
         }
     }
     
@@ -31,16 +55,16 @@ Item {
                 if (output.length > 0) {
                     var parts = output.split(":")
                     if (parts.length >= 3) {
-                        var ssid = parts[1]
+                        var s = parts[1]
                         var strength = parseInt(parts[2])
-                        root.connectedSsid = (ssid && ssid.length > 0) ? "net aara bhai" : "No Internet"
+                        root.ssid = (s && s.length > 0) ? s : ""
                         root.signalStrength = isNaN(strength) ? 0 : strength
                     } else {
-                        root.connectedSsid = "No Internet"
+                        root.ssid = ""
                         root.signalStrength = 0
                     }
                 } else {
-                    root.connectedSsid = "No Internet"
+                    root.ssid = ""
                     root.signalStrength = 0
                 }
             }

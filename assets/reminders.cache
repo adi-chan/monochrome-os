@@ -1,2 +1,11 @@
-kafka, redis, springboot
+kafka, docker
 breathe live die
+
+py : fastapi, django, post/sqlalchemy, redis,
+celery, docker, uvicorn, pytest
+
+java: sprintboot, postgresql/mysql+hibernate
+
+maven/gradle, redis + apache kafka
+junit5+mockito+docker
+

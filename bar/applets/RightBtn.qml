@@ -44,61 +44,41 @@ Rectangle {
     RowLayout {
         id: row
         anchors.fill: parent
-        anchors.margins: 0
-        spacing: 2
-
-        Rectangle {
-            id: avatarBorder
-            width: 28
-            height: 28
-            radius: width / 2
-            color: "transparent"
-            antialiasing: true
-            Layout.alignment: Qt.AlignVCenter
-
-            ClippingRectangle {
-                anchors.fill: parent
-                anchors.margins: 2
-                radius: width / 2
-                antialiasing: true
-                layer.enabled: true
-                layer.smooth: true
-
-                Image {
-                    anchors.fill: parent
-                    source: Qt.resolvedUrl("../assets/pfp.jpg")
-                    fillMode: Image.PreserveAspectCrop
-                    smooth: true
-                    mipmap: true
-                }
-            }
-        }
+        anchors.leftMargin: 8
+        anchors.rightMargin: 8
+        spacing: 6
 
         Text {
             text: wifiIcon(Services.Network.connected, Services.Network.signalStrength)
-            font.family: "Hack Nerd Font"
+            font.family: "JetBrainsMono Nerd Font"
             font.pixelSize: 14
+            font.weight: 600
             color: Services.Theme.text
             opacity: Services.Network.connected ? 1.0 : 0.75
             Layout.alignment: Qt.AlignVCenter
         }
 
-        Text {
-            text: ""
-            font.family: "Hack Nerd Font"
-            font.pixelSize: 14
-            color: Services.Theme.text
-            opacity: 0.95
+        RowLayout {
+            spacing: 4
             Layout.alignment: Qt.AlignVCenter
-        }
 
-        Text {
-            text: "󰃠 "
-            font.family: "Hack Nerd Font"
-            font.pixelSize: 14
-            color: Services.Theme.text
-            opacity: 0.95
-            Layout.alignment: Qt.AlignVCenter
+            Text {
+                text: Services.Bluetooth.powered ? (Services.Bluetooth.connected ? "󰂱" : "󰂯") : "󰂲"
+                font.family: "JetBrainsMono Nerd Font"
+                font.pixelSize: 14
+                font.weight: 600
+                color: Services.Theme.text
+                opacity: Services.Bluetooth.connected ? 1.0 : 0.75
+            }
+
+            Text {
+                visible: Services.Bluetooth.connected && Services.Bluetooth.battery !== ""
+                text: Services.Bluetooth.battery + "%"
+                font.family: "JetBrainsMono Nerd Font"
+                font.pixelSize: 14
+                font.weight: 600
+                color: Services.Theme.text
+            }
         }
     }
 

@@ -1,16 +1,11 @@
-// modules/Battery.qml
+// bar/applets/Battery.qml
 import QtQuick
+import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import Quickshell.Widgets
 import qs.services as Services
 import qs.panels.RightPanel
-import qs.panels.WidgetPanel
-import qs.panels.Power
-import qs.panels.Launchers
-import qs.panels.Notifications
-import qs.panels.Media
-import qs.panels.OSD
 
 Item {
     id: root
@@ -41,6 +36,33 @@ Item {
 
     property bool startupDone: false
     property real animatedPercent: 100.0
+
+    // Power Profile tracking
+    property string currentProfile: "balanced"
+    Process {
+        id: profileRead
+        command: ["bash", "-c", "busctl get-property net.hadess.PowerProfiles /net/hadess/PowerProfiles net.hadess.PowerProfiles ActiveProfile | cut -d'\"' -f2"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let p = text.trim()
+                if (p !== "") root.currentProfile = p
+            }
+        }
+    }
+    Timer {
+        interval: 2000
+        repeat: true
+        running: true
+        triggeredOnStart: true
+        onTriggered: profileRead.running = true
+    }
+
+    function getProfileIcon(profile, status) {
+        if (status === "Charging") return "󰚥"
+        if (profile === "performance") return ""
+        if (profile === "power-saver") return "󰌪"
+        return ""
+    }
 
     onBatteryPercentChanged: {
         if (!startupDone) {
@@ -80,10 +102,9 @@ Item {
     }
 
     Timer {
-        interval: 100
+        interval: 1000
         running: true
         repeat: true
-
         onTriggered: {
             readerPercent.running = true
             readerStatus.running = true
@@ -93,7 +114,7 @@ Item {
     Process {
         id: readerPercent
         running: true
-        command: ["bash", "-c", "cat /sys/class/power_supply/BAT0/capacity"]
+        command: ["bash", "-c", "cat /sys/class/power_supply/BAT0/capacity 2>/dev/null || cat /sys/class/power_supply/BAT1/capacity 2>/dev/null || echo 100"]
 
         stdout: StdioCollector {
             onStreamFinished: {
@@ -107,7 +128,7 @@ Item {
     Process {
         id: readerStatus
         running: true
-        command: ["bash", "-c", "cat /sys/class/power_supply/BAT0/status"]
+        command: ["bash", "-c", "cat /sys/class/power_supply/BAT0/status 2>/dev/null || cat /sys/class/power_supply/BAT1/status 2>/dev/null || echo Discharging"]
 
         stdout: StdioCollector {
             onStreamFinished: root.batteryStatus = this.text.trim()
@@ -182,43 +203,40 @@ Item {
                 NumberAnimation on rotation {
                     from: 0
                     to: 360
-                    duration: 3000 // Slowed down from 1100 to 3000
+                    duration: 3000
                     loops: Animation.Infinite
                     running: batteryStatus === "Charging"
                 }
             }
         }
 
-        Row {
+        RowLayout {
             id: contentRow
             anchors.centerIn: parent
             spacing: 6
 
             Text {
                 id: icon
-                text: batteryStatus === "Charging" ? "󰚥" : ""
+                text: root.getProfileIcon(root.currentProfile, root.batteryStatus)
                 font.pixelSize: 14
-                font.family: "Adwaita Sans"
+                font.family: "JetBrainsMono Nerd Font"
                 font.weight: 600
                 color: textColor
+                verticalAlignment: Text.AlignVCenter
+                horizontalAlignment: Text.AlignHCenter
+                Layout.alignment: Qt.AlignVCenter
             }
 
             Text {
                 text: batteryPercent + "%"
                 font.pixelSize: 14
-                font.family: "JetBrains Mono"
+                font.family: "JetBrainsMono Nerd Font"
                 font.weight: 600
                 color: textColor
+                verticalAlignment: Text.AlignVCenter
+                horizontalAlignment: Text.AlignHCenter
+                Layout.alignment: Qt.AlignVCenter
             }
-        }
-
-        BatteryMenu {
-            id: menu
-            open: root.open
-            anchorItem: bg
-            batteryPercent: root.batteryPercent
-            batteryStatus: root.batteryStatus
-            onRequestClose: root.open = false
         }
     }
 }

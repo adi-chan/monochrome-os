@@ -1,6 +1,7 @@
-// modules/LeftPanel.qml
+// modules/RightPanel.qml
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 import QtQuick.Effects
 import Quickshell
 import Quickshell.Hyprland
@@ -13,7 +14,7 @@ import qs.modules.controlpanel
 PopupWindow {
     id: pop
 
-    // Content Colors
+    // Content Colors & Properties
     property color textMain: Services.Theme.text
     property color textSub: Services.Theme.subtext
     property bool open: false
@@ -24,14 +25,79 @@ PopupWindow {
     visible: (open && anchorItem !== null) || closing
     color: "transparent"
 
-    // ===== Size (content) =====
-    property int contentW: 360
-    property int contentH: 380
+    // Active Sidebar Tab (0: Wi-Fi, 1: Ethernet, 2: Bluetooth, 3: Power Profile & Battery)
+    property int activeTab: 0
+
+    // Power Profile property tracking
+    property string currentProfile: "balanced"
+    Process {
+        id: profileRead
+        command: ["bash", "-c", "busctl get-property net.hadess.PowerProfiles /net/hadess/PowerProfiles net.hadess.PowerProfiles ActiveProfile | cut -d'\"' -f2"]
+        stdout: StdioCollector {
+            onStreamFinished: if (text.trim() !== "") pop.currentProfile = text.trim()
+        }
+    }
+    Timer {
+        interval: 2000
+        repeat: true
+        running: pop.visible
+        triggeredOnStart: true
+        onTriggered: profileRead.running = true
+    }
+
+    Process { id: perfProc; command: ["busctl", "set-property", "net.hadess.PowerProfiles", "/net/hadess/PowerProfiles", "net.hadess.PowerProfiles", "ActiveProfile", "s", "performance"]; onExited: profileRead.running = true }
+    Process { id: balProc; command: ["busctl", "set-property", "net.hadess.PowerProfiles", "/net/hadess/PowerProfiles", "net.hadess.PowerProfiles", "ActiveProfile", "s", "balanced"]; onExited: profileRead.running = true }
+    Process { id: saverProc; command: ["busctl", "set-property", "net.hadess.PowerProfiles", "/net/hadess/PowerProfiles", "net.hadess.PowerProfiles", "ActiveProfile", "s", "power-saver"]; onExited: profileRead.running = true }
+
+    // Wi-Fi Network scanning
+    property string wifiStatusText: ""
+    property bool wifiBusy: false
+    ListModel { id: wifiModel }
+    Process {
+        id: wifiScanProc
+        command: ["bash", "-c", "nmcli -t -f ACTIVE,SSID,SIGNAL,SECURITY dev wifi"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                wifiModel.clear()
+                const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0)
+                let added = {}
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i]
+                    const parts = line.replace(/\\:/g, "_").split(":")
+                    if (parts.length < 4) continue
+                    const active = parts[0] === "yes"
+                    const ssid = parts[1]
+                    const signal = parseInt(parts[2]) || 0
+                    const sec = parts[3]
+                    if (!ssid || added[ssid]) continue
+                    added[ssid] = true
+                    wifiModel.append({
+                        active: active,
+                        ssid: ssid,
+                        signal: signal,
+                        secured: sec.length > 0 && sec !== "--"
+                    })
+                }
+            }
+        }
+    }
+
+    Timer {
+        interval: 5000
+        repeat: true
+        running: pop.visible && pop.activeTab === 0
+        triggeredOnStart: true
+        onTriggered: wifiScanProc.running = true
+    }
+
+    // ===== Size =====
+    property int contentW: 460
+    property int contentH: 400
 
     // ===== Theme / Shadow =====
-    property color panelBg: Services.Theme.bg // Neutral dark grey
-    property color panelBorder: Services.Theme.border // Neutral border
-    property int panelRadius: 16
+    property color panelBg: Services.Theme.bg
+    property color panelBorder: Services.Theme.border
+    property int panelRadius: 18
     property int shadowPad: 10
     property real shadowOpacity: 0.28
     property real shadowBlur: 0.55
@@ -97,9 +163,6 @@ PopupWindow {
     onVisibleChanged: {
         if (visible && open) playOpenAnim()
     }
-
-    // ===== BACKDROP =====
-    // Backdrop and focus grab removed for pure hover functionality
 
     Item {
         anchors.fill: parent
@@ -194,100 +257,421 @@ PopupWindow {
                 onPressed: mouse.accepted = true
             }
 
-            // ===== CONTENT =====
-            ColumnLayout {
+            // ===== MAIN CONTROL CENTER LAYOUT =====
+            RowLayout {
                 anchors.fill: parent
                 anchors.margins: 12
                 spacing: 12
 
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 12
-
-                    ProfilePicture {}
+                // ==========================================
+                // LEFT SIDEBAR NAVIGATION PILL
+                // ==========================================
+                Rectangle {
+                    Layout.preferredWidth: 50
+                    Layout.fillHeight: true
+                    radius: 25
+                    color: Services.Theme.bgSolid
+                    border.color: Services.Theme.border
+                    border.width: 1
 
                     ColumnLayout {
-                        Layout.fillWidth: true
-                        Layout.alignment: Qt.AlignVCenter
-                        spacing: 2
+                        anchors.fill: parent
+                        anchors.topMargin: 12
+                        anchors.bottomMargin: 12
+                        spacing: 10
 
-                        Text {
-                            text: "hello, " + Services.SystemDetails.username
-                            color: Services.Theme.text
-                            font.pixelSize: 22
-                            font.weight: 600
-                            font.family: "JetBrains Mono"
-                            elide: Text.ElideRight
-                            Layout.fillWidth: true
+                        // Icon Tab Data Model
+                        Repeater {
+                            model: [
+                                { icon: "󰤨", name: "Wireless" },
+                                { icon: "󰈀", name: "Ethernet" },
+                                { icon: "󰂯", name: "Bluetooth" }
+                            ]
+
+                            delegate: Rectangle {
+                                id: tabBtn
+                                Layout.alignment: Qt.AlignHCenter
+                                width: 38
+                                height: 38
+                                radius: 19
+                                
+                                property bool isActive: pop.activeTab === index
+                                property bool isHovered: false
+
+                                color: isActive ? Services.Theme.primary : (isHovered ? Services.Theme.highlight : "transparent")
+                                Behavior on color { ColorAnimation { duration: 150 } }
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: modelData.icon
+                                    font.family: "Hack Nerd Font"
+                                    font.pixelSize: 16
+                                    color: tabBtn.isActive ? (Services.Theme.isDark ? "#000000" : "#ffffff") : Services.Theme.text
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onEntered: {
+                                        tabBtn.isHovered = true
+                                        pop.activeTab = index
+                                    }
+                                    onExited: tabBtn.isHovered = false
+                                    onClicked: pop.activeTab = index
+                                }
+                            }
                         }
 
-                        RowLayout {
-                            spacing: 8
+                        Item { Layout.fillHeight: true }
+                    }
+                }
+
+                // ==========================================
+                // RIGHT DYNAMIC CONTENT AREA
+                // ==========================================
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    spacing: 10
+
+                    // Header (User Profile + Info)
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 10
+
+                        ProfilePicture {}
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            Layout.alignment: Qt.AlignVCenter
+                            spacing: 2
 
                             Text {
-                                text: Services.SystemDetails.osIcon
+                                text: "hello, " + Services.SystemDetails.username
                                 color: Services.Theme.text
                                 font.pixelSize: 18
-                            }
-
-                            Text {
-                                text: Services.SystemDetails.uptime
-                                color: Services.Theme.text
-                                opacity: 0.85
-                                font.pixelSize: 14
+                                font.weight: 700
+                                font.family: "JetBrains Mono"
                                 elide: Text.ElideRight
                                 Layout.fillWidth: true
                             }
+
+                            RowLayout {
+                                spacing: 6
+
+                                Text {
+                                    text: Services.SystemDetails.osIcon
+                                    color: Services.Theme.subtext
+                                    font.pixelSize: 14
+                                }
+
+                                Text {
+                                    text: Services.SystemDetails.uptime
+                                    color: Services.Theme.subtext
+                                    font.pixelSize: 12
+                                    elide: Text.ElideRight
+                                    Layout.fillWidth: true
+                                }
+                            }
                         }
                     }
 
-                    Item { Layout.fillWidth: true }
-                }
-
-                Rectangle {
-                    Layout.fillWidth: true
-                    height: 1
-                    color: Services.Theme.border
-                }
-
-                GridLayout {
-                    Layout.fillWidth: true
-                    columns: 2
-                    columnSpacing: 10
-                    rowSpacing: 10
-
-                    Network { 
-                        id: networkCard
+                    Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 60
-                        onMenuRequested: networkMenu.openFrom(networkCard, pop)
+                        height: 1
+                        color: Services.Theme.border
+                        opacity: 0.7
                     }
-                    Bluetooth { 
-                        id: bluetoothCard
+
+                    // DYNAMIC VIEW CONTENT
+                    Item {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 60
-                        onMenuRequested: bluetoothMenu.openFrom(bluetoothCard, pop)
+                        Layout.fillHeight: true
+                        clip: true
+
+                        // ------------------------------------------
+                        // TAB 0: WIRELESS (Wi-Fi) VIEW
+                        // ------------------------------------------
+                        ColumnLayout {
+                            anchors.fill: parent
+                            visible: pop.activeTab === 0
+                            spacing: 8
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Text {
+                                    text: "Wireless"
+                                    font.pixelSize: 16
+                                    font.bold: true
+                                    font.family: "JetBrains Mono"
+                                    color: Services.Theme.text
+                                    Layout.fillWidth: true
+                                }
+
+                                Switch {
+                                    checked: Services.Network.wifiEnabled
+                                    onClicked: Services.Network.toggleWifi()
+                                }
+                            }
+
+                            Text {
+                                text: Services.Network.wifiEnabled ? (Services.Network.connected ? ("Connected: " + Services.Network.ssid) : "Disconnected") : "Wireless Off"
+                                font.pixelSize: 12
+                                color: Services.Theme.subtext
+                            }
+
+                            Rectangle {
+                                Layout.fillWidth: true
+                                height: 32
+                                radius: 8
+                                color: Services.Theme.bgSolid
+                                border.color: Services.Theme.border
+                                border.width: 1
+
+                                RowLayout {
+                                    anchors.centerIn: parent
+                                    spacing: 6
+                                    Text { text: "󰤨"; font.family: "JetBrainsMono Nerd Font"; color: Services.Theme.text }
+                                    Text { text: "Rescan networks"; font.pixelSize: 12; color: Services.Theme.text; font.family: "JetBrains Mono" }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: wifiScanProc.running = true
+                                }
+                            }
+
+                            ListView {
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                spacing: 6
+                                clip: true
+                                model: wifiModel
+
+                                delegate: Rectangle {
+                                    width: ListView.view.width
+                                    height: 36
+                                    radius: 8
+                                    color: model.active ? Services.Theme.primary : Services.Theme.bgSolid
+                                    border.color: Services.Theme.border
+                                    border.width: 1
+
+                                    RowLayout {
+                                        anchors.fill: parent
+                                        anchors.margins: 8
+                                        spacing: 8
+
+                                        Text {
+                                            text: model.active ? "󰤨" : "󰤟"
+                                            font.family: "JetBrainsMono Nerd Font"
+                                            font.pixelSize: 14
+                                            color: model.active ? (Services.Theme.isDark ? "#000000" : "#ffffff") : Services.Theme.text
+                                        }
+
+                                        Text {
+                                            text: model.ssid
+                                            font.pixelSize: 13
+                                            font.family: "JetBrains Mono"
+                                            color: model.active ? (Services.Theme.isDark ? "#000000" : "#ffffff") : Services.Theme.text
+                                            Layout.fillWidth: true
+                                            elide: Text.ElideRight
+                                        }
+
+                                        Text {
+                                            visible: model.secured
+                                            text: "🔒"
+                                            font.pixelSize: 10
+                                        }
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: {
+                                            if (!model.active) {
+                                                Quickshell.execDetached(["nmcli", "dev", "wifi", "connect", model.ssid])
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // ------------------------------------------
+                        // TAB 1: ETHERNET VIEW
+                        // ------------------------------------------
+                        ColumnLayout {
+                            anchors.fill: parent
+                            visible: pop.activeTab === 1
+                            spacing: 10
+
+                            Text {
+                                text: "Ethernet"
+                                font.pixelSize: 16
+                                font.bold: true
+                                font.family: "JetBrains Mono"
+                                color: Services.Theme.text
+                            }
+
+                            Text {
+                                text: Services.Network.connected && !Services.Network.wifiEnabled ? "Wired Network Active" : "Wired Connection Available"
+                                font.pixelSize: 13
+                                color: Services.Theme.subtext
+                            }
+
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 50
+                                radius: 10
+                                color: Services.Theme.bgSolid
+                                border.color: Services.Theme.border
+                                border.width: 1
+
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.margins: 12
+                                    spacing: 10
+
+                                    Text {
+                                        text: "󰈀"
+                                        font.family: "JetBrainsMono Nerd Font"
+                                        font.pixelSize: 18
+                                        color: Services.Theme.primary
+                                    }
+
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        Text {
+                                            text: "Wired Interface"
+                                            font.pixelSize: 13
+                                            font.bold: true
+                                            color: Services.Theme.text
+                                        }
+                                        Text {
+                                            text: "Ethernet Ready"
+                                            font.pixelSize: 11
+                                            color: Services.Theme.subtext
+                                        }
+                                    }
+                                }
+                            }
+
+                            Item { Layout.fillHeight: true }
+                        }
+
+                        // ------------------------------------------
+                        // TAB 2: BLUETOOTH VIEW
+                        // ------------------------------------------
+                        ColumnLayout {
+                            anchors.fill: parent
+                            visible: pop.activeTab === 2
+                            spacing: 8
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Text {
+                                    text: "Bluetooth"
+                                    font.pixelSize: 16
+                                    font.bold: true
+                                    font.family: "JetBrains Mono"
+                                    color: Services.Theme.text
+                                    Layout.fillWidth: true
+                                }
+
+                                Switch {
+                                    checked: Services.Bluetooth.powered
+                                    onClicked: Services.Bluetooth.togglePower()
+                                }
+                            }
+
+                            Text {
+                                text: Services.Bluetooth.powered ? (Services.Bluetooth.connected ? ("Connected to " + Services.Bluetooth.deviceName + (Services.Bluetooth.battery !== "" ? " (" + Services.Bluetooth.battery + "%)" : "")) : "Enabled / Discovering") : "Bluetooth Off"
+                                font.pixelSize: 12
+                                color: Services.Theme.subtext
+                            }
+
+                            Rectangle {
+                                Layout.fillWidth: true
+                                height: 32
+                                radius: 8
+                                color: Services.Theme.bgSolid
+                                border.color: Services.Theme.border
+                                border.width: 1
+
+                                RowLayout {
+                                    anchors.centerIn: parent
+                                    spacing: 6
+                                    Text { text: "⚙"; font.pixelSize: 12; color: Services.Theme.text }
+                                    Text { text: "Open bluetooth settings"; font.pixelSize: 12; color: Services.Theme.text; font.family: "JetBrains Mono" }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        Quickshell.execDetached(["bash", "-c", "blueman-manager || blueberry || systemsettings5 kcm_bluetooth"])
+                                    }
+                                }
+                            }
+
+                            ListView {
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                spacing: 6
+                                clip: true
+                                model: Services.Bluetooth.devicesModel
+
+                                delegate: Rectangle {
+                                    width: ListView.view.width
+                                    height: 36
+                                    radius: 8
+                                    color: model.connected ? Services.Theme.primary : Services.Theme.bgSolid
+                                    border.color: Services.Theme.border
+                                    border.width: 1
+
+                                    RowLayout {
+                                        anchors.fill: parent
+                                        anchors.margins: 8
+                                        spacing: 8
+
+                                        Text {
+                                            text: model.connected ? "󰂱" : "󰂯"
+                                            font.family: "JetBrainsMono Nerd Font"
+                                            font.pixelSize: 14
+                                            color: model.connected ? (Services.Theme.isDark ? "#000000" : "#ffffff") : Services.Theme.text
+                                        }
+
+                                        Text {
+                                            text: model.name || "Bluetooth Device"
+                                            font.pixelSize: 13
+                                            font.family: "JetBrains Mono"
+                                            color: model.connected ? (Services.Theme.isDark ? "#000000" : "#ffffff") : Services.Theme.text
+                                            Layout.fillWidth: true
+                                            elide: Text.ElideRight
+                                        }
+
+                                        Text {
+                                            text: model.connected ? "Disconnect" : "Connect"
+                                            font.pixelSize: 11
+                                            color: model.connected ? (Services.Theme.isDark ? "#000000" : "#ffffff") : Services.Theme.subtext
+                                        }
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: {
+                                            Services.Bluetooth.connectDevice(model.mac, model.connected)
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
-                   // Inhibitor { Layout.fillWidth: true; Layout.preferredHeight: 60 }
-                    System_Details { Layout.fillWidth: true; Layout.preferredHeight: 60 }
-                    QuickApps { Layout.fillWidth: true; Layout.preferredHeight: 60 }
                 }
-
-                Rectangle {
-                    Layout.fillWidth: true
-                    height: 1
-                    color: Services.Theme.border
-                    Layout.topMargin: 10
-                    Layout.bottomMargin: 10
-                }
-
-                QuickScripts { Layout.fillWidth: true }
-
-                Item { Layout.fillHeight: true }
             }
         }
     }
-
-    NetworkMenu { id: networkMenu }
-    BluetoothMenu { id: bluetoothMenu }
 }
