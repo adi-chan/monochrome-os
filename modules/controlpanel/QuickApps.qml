@@ -72,8 +72,8 @@ Item {
             }
 
             AppButton {
-                iconTxt: "" // Browser
-                cmd: "flatpak run app.zen_browser.zen"
+                iconTxt: "󰚩" // Robot
+                cmd: "foot bash -c 'cd ~/tools/ai-chat/ && agy'"
             }
 
             AppButton {

@@ -284,8 +284,9 @@ PopupWindow {
                         Repeater {
                             model: [
                                 { icon: "󰤨", name: "Wireless" },
-                                { icon: "󰈀", name: "Ethernet" },
-                                { icon: "󰂯", name: "Bluetooth" }
+                                { icon: "󰂯", name: "Bluetooth" },
+                                { icon: "󰒲", name: "System" },
+                                { icon: "󰀘", name: "Shortcuts" }
                             ]
 
                             delegate: Rectangle {
@@ -500,73 +501,11 @@ PopupWindow {
                         }
 
                         // ------------------------------------------
-                        // TAB 1: ETHERNET VIEW
+                        // TAB 1: BLUETOOTH VIEW
                         // ------------------------------------------
                         ColumnLayout {
                             anchors.fill: parent
                             visible: pop.activeTab === 1
-                            spacing: 10
-
-                            Text {
-                                text: "Ethernet"
-                                font.pixelSize: 16
-                                font.bold: true
-                                font.family: "JetBrains Mono"
-                                color: Services.Theme.text
-                            }
-
-                            Text {
-                                text: Services.Network.connected && !Services.Network.wifiEnabled ? "Wired Network Active" : "Wired Connection Available"
-                                font.pixelSize: 13
-                                color: Services.Theme.subtext
-                            }
-
-                            Rectangle {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 50
-                                radius: 10
-                                color: Services.Theme.bgSolid
-                                border.color: Services.Theme.border
-                                border.width: 1
-
-                                RowLayout {
-                                    anchors.fill: parent
-                                    anchors.margins: 12
-                                    spacing: 10
-
-                                    Text {
-                                        text: "󰈀"
-                                        font.family: "JetBrainsMono Nerd Font"
-                                        font.pixelSize: 18
-                                        color: Services.Theme.primary
-                                    }
-
-                                    ColumnLayout {
-                                        Layout.fillWidth: true
-                                        Text {
-                                            text: "Wired Interface"
-                                            font.pixelSize: 13
-                                            font.bold: true
-                                            color: Services.Theme.text
-                                        }
-                                        Text {
-                                            text: "Ethernet Ready"
-                                            font.pixelSize: 11
-                                            color: Services.Theme.subtext
-                                        }
-                                    }
-                                }
-                            }
-
-                            Item { Layout.fillHeight: true }
-                        }
-
-                        // ------------------------------------------
-                        // TAB 2: BLUETOOTH VIEW
-                        // ------------------------------------------
-                        ColumnLayout {
-                            anchors.fill: parent
-                            visible: pop.activeTab === 2
                             spacing: 8
 
                             RowLayout {
@@ -668,6 +607,49 @@ PopupWindow {
                                     }
                                 }
                             }
+                        }
+
+                        // ------------------------------------------
+                        // TAB 2: SYSTEM VIEW
+                        // ------------------------------------------
+                        ColumnLayout {
+                            anchors.fill: parent
+                            visible: pop.activeTab === 2
+                            spacing: 12
+
+                            Text {
+                                text: "System Info"
+                                font.pixelSize: 16
+                                font.bold: true
+                                font.family: "JetBrains Mono"
+                                color: Services.Theme.text
+                            }
+                            
+                            System_Details { Layout.fillWidth: true; Layout.fillHeight: true }
+                            
+                            Item { Layout.fillHeight: true }
+                        }
+
+                        // ------------------------------------------
+                        // TAB 3: SHORTCUTS VIEW
+                        // ------------------------------------------
+                        ColumnLayout {
+                            anchors.fill: parent
+                            visible: pop.activeTab === 3
+                            spacing: 12
+
+                            Text {
+                                text: "Shortcuts"
+                                font.pixelSize: 16
+                                font.bold: true
+                                font.family: "JetBrains Mono"
+                                color: Services.Theme.text
+                            }
+                            
+                            QuickApps { Layout.fillWidth: true; Layout.preferredHeight: 60 }
+                            QuickScripts { Layout.fillWidth: true; Layout.preferredHeight: 60 }
+                            
+                            Item { Layout.fillHeight: true }
                         }
                     }
                 }
