@@ -15,7 +15,109 @@ Rectangle {
     border.color: Services.Theme.bgSolid   // border color
     antialiasing: true
 
-    implicitWidth: layoutRow.implicitWidth + 24
+    property bool isPlaying: Services.Mpris.playbackStatus === "Playing"
+    implicitWidth: isPlaying ? 320 : layoutRow.implicitWidth + 24
+    
+    Behavior on implicitWidth { NumberAnimation { duration: 350; easing.type: Easing.InOutCubic } }
+    
+    property var audioData: new Array(80).fill(0)
+    property int audioTick: 0
+    Process {
+        id: cavaProc
+        running: root.isPlaying
+        command: ["cava", "-p", "/home/nick/.config/quickshell/cava.conf"]
+        stdout: SplitParser {
+            splitMarker: "\n"
+            onRead: data => {
+                const parts = data.split(";")
+                let newArr = new Array(80)
+                for (let i = 0; i < 80; i++) {
+                    newArr[i] = parseInt(parts[i]) || 0
+                }
+                root.audioData = newArr
+                root.audioTick++
+            }
+        }
+    }
+
+    Canvas {
+        id: eqCanvas
+        anchors.fill: parent
+        anchors.margins: -16
+        visible: root.isPlaying
+        z: -1
+        
+        Connections {
+            target: root
+            function onAudioTickChanged() {
+                eqCanvas.requestPaint();
+            }
+        }
+        
+        onPaint: {
+            var ctx = getContext("2d");
+            ctx.reset();
+            
+            var w = width - 32;
+            var h = height - 32;
+            var R = h / 2;
+            
+            function getPillPoint(t) {
+                var w_straight = Math.max(0, w - 2 * R);
+                var arc_len = Math.PI * R;
+                var total_len = 2 * w_straight + 2 * arc_len;
+                
+                var d = t * total_len;
+                
+                if (d <= w_straight) {
+                    return { x: R + d, y: 0, nx: 0, ny: -1 };
+                }
+                d -= w_straight;
+                
+                if (d <= arc_len) {
+                    var angle = -Math.PI/2 + (d / arc_len) * Math.PI;
+                    return { x: w - R + Math.cos(angle) * R, y: R + Math.sin(angle) * R, nx: Math.cos(angle), ny: Math.sin(angle) };
+                }
+                d -= arc_len;
+                
+                if (d <= w_straight) {
+                    return { x: w - R - d, y: h, nx: 0, ny: 1 };
+                }
+                d -= w_straight;
+                
+                var angle = Math.PI/2 + (d / arc_len) * Math.PI;
+                return { x: R + Math.cos(angle) * R, y: R + Math.sin(angle) * R, nx: Math.cos(angle), ny: Math.sin(angle) };
+            }
+            
+            ctx.fillStyle = root.color;
+            ctx.beginPath();
+            
+            var points = 250;
+            for (var i = 0; i <= points; i++) {
+                var t = i / points;
+                var pt = getPillPoint(t);
+                
+                var fIndex = (pt.x / w) * 79;
+                var idx1 = Math.floor(fIndex);
+                var idx2 = Math.min(79, idx1 + 1);
+                var frac = fIndex - idx1;
+                var val = (root.audioData[idx1] || 0) * (1 - frac) + (root.audioData[idx2] || 0) * frac;
+                
+                var h_offset = (val / 100) * 12;
+                
+                var cx = 16 + pt.x + pt.nx * h_offset;
+                var cy = 16 + pt.y + pt.ny * h_offset;
+                
+                if (i === 0) {
+                    ctx.moveTo(cx, cy);
+                } else {
+                    ctx.lineTo(cx, cy);
+                }
+            }
+            ctx.closePath();
+            ctx.fill();
+        }
+    }
 
     property bool hovered: false
     property bool pressed: false
@@ -122,23 +224,191 @@ Rectangle {
         anchors.centerIn: parent
         spacing: 6
 
-        Rectangle {
-            id: reminderDot
-            width: 8
-            height: 8
-            radius: 4
-            color: Services.Theme.isDark ? "#f38ba8" : "#d32f2f" // Pastel red
-            anchors.verticalCenter: parent.verticalCenter
-            visible: root.hasPendingReminder
+        // 1) Date/Time Container
+        Item {
+            id: timeWrapper
+            property bool active: Services.Mpris.playbackStatus !== "Playing"
+            width: active ? timeContainer.implicitWidth : 0
+            height: timeContainer.implicitHeight
+            opacity: active ? 1.0 : 0.0
+            visible: opacity > 0
+            clip: true
+            
+            Behavior on width { NumberAnimation { duration: 350; easing.type: Easing.InOutCubic } }
+            Behavior on opacity { NumberAnimation { duration: 350; easing.type: Easing.InOutCubic } }
+
+            Row {
+                id: timeContainer
+                spacing: 6
+                
+                Rectangle {
+                    id: reminderDot
+                    width: 8
+                    height: 8
+                    radius: 4
+                    color: Services.Theme.isDark ? "#f38ba8" : "#d32f2f" // Pastel red
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: root.hasPendingReminder
+                }
+
+                Text {
+                    id: timeText
+                    color: Services.Theme.text
+                    font.pixelSize: 13
+                    font.family: "JetBrains Mono"
+                    font.weight: 800
+                    text: root.currentTime
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+            }
         }
 
-        Text {
-            id: timeText
-            color: Services.Theme.text
-            font.pixelSize: 13
-            font.family: "JetBrains Mono"
-            font.weight: 800
-            text: root.currentTime
+        // 2) Mini Media Player Container
+        Item {
+            id: mediaWrapper
+            property bool active: Services.Mpris.playbackStatus === "Playing"
+            width: active ? mediaContainer.implicitWidth : 0
+            height: mediaContainer.implicitHeight
+            opacity: active ? 1.0 : 0.0
+            visible: opacity > 0
+            clip: true
+            
+            Behavior on width { NumberAnimation { duration: 350; easing.type: Easing.InOutCubic } }
+            Behavior on opacity { NumberAnimation { duration: 350; easing.type: Easing.InOutCubic } }
+
+            Row {
+                id: mediaContainer
+                spacing: 8
+                
+                Text {
+                    text: ""
+                    font.family: "JetBrainsMono Nerd Font"
+                    font.pixelSize: 14
+                    color: Services.Theme.primary
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+
+                Item {
+                    id: viewport
+                    width: Math.min(240, textA.implicitWidth)
+                    height: 20
+                    clip: true
+                    anchors.verticalCenter: parent.verticalCenter
+                    
+                    property bool needsMarquee: false
+                    property int fadeW: 12
+                    
+                    Row {
+                        id: marqueeRow
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 22
+                        x: 0
+                        
+                        Text {
+                            id: textA
+                            text: Services.Mpris.albumTitle
+                            color: Services.Theme.text
+                            font.pixelSize: 13
+                            font.family: "JetBrains Mono"
+                            font.weight: 700
+                            elide: Text.ElideNone
+                        }
+                        
+                        Text {
+                            id: textB
+                            text: textA.text
+                            color: Services.Theme.text
+                            font.pixelSize: 13
+                            font.family: "JetBrains Mono"
+                            font.weight: 700
+                            elide: Text.ElideNone
+                            visible: viewport.needsMarquee
+                        }
+                    }
+                    
+                    Item {
+                        z: 10
+                        visible: viewport.needsMarquee
+                        width: viewport.fadeW
+                        anchors.left: parent.left
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+                        clip: true
+                        
+                        Rectangle {
+                            anchors.fill: parent
+                            gradient: Gradient {
+                                orientation: Gradient.Horizontal
+                                GradientStop { position: 0.0; color: root.color }
+                                GradientStop { position: 1.0; color: Qt.alpha(root.color, 0.0) }
+                            }
+                        }
+                    }
+                    
+                    Item {
+                        z: 10
+                        visible: viewport.needsMarquee
+                        width: viewport.fadeW
+                        anchors.right: parent.right
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+                        clip: true
+                        
+                        Rectangle {
+                            anchors.fill: parent
+                            gradient: Gradient {
+                                orientation: Gradient.Horizontal
+                                GradientStop { position: 0.0; color: Qt.alpha(root.color, 0.0) }
+                                GradientStop { position: 1.0; color: root.color }
+                            }
+                        }
+                    }
+                    
+                    Timer {
+                        id: marqueeDelay
+                        interval: 1000
+                        repeat: false
+                        onTriggered: {
+                            if (viewport.needsMarquee) marqueeAnim.start()
+                        }
+                    }
+                    
+                    function recompute(resetPosition) {
+                        viewport.needsMarquee = textA.implicitWidth > 240
+                        
+                        marqueeAnim.stop()
+                        marqueeDelay.stop()
+                        
+                        if (resetPosition || !viewport.needsMarquee) marqueeRow.x = 0
+                        
+                        if (viewport.needsMarquee) {
+                            marqueeAnim.from = 0
+                            marqueeAnim.to = -(textA.implicitWidth + marqueeRow.spacing)
+                            marqueeDelay.start()
+                        }
+                    }
+                    
+                    onWidthChanged: recompute(false)
+                    Component.onCompleted: recompute(true)
+                    
+                    Connections {
+                        target: Services.Mpris
+                        function onAlbumTitleChanged() { viewport.recompute(true) }
+                    }
+                    
+                    NumberAnimation {
+                        id: marqueeAnim
+                        target: marqueeRow
+                        property: "x"
+                        from: 0
+                        to: -(textA.implicitWidth + marqueeRow.spacing)
+                        duration: Math.max(8000, textA.implicitWidth * 22)
+                        loops: Animation.Infinite
+                        easing.type: Easing.Linear
+                        running: false
+                    }
+                }
+            }
         }
     }
 

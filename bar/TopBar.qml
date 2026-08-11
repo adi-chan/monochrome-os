@@ -70,7 +70,7 @@ PanelWindow {
         anchors.verticalCenter: parent.verticalCenter
         height: parent.height
         spacing: 6
-        Mediaplayer { id: media }
+        // Mediaplayer { id: media }
       //  Battery  { Layout.alignment: Qt.AlignVCenter }
       Battery {
           id: battery

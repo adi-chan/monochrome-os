@@ -73,7 +73,6 @@ PanelWindow {
     onVisibleChanged: {
         if (visible) {
             remindersExpanded = false
-            pageIndex = 0
         }
     }
 
@@ -268,7 +267,7 @@ PanelWindow {
                                 id: timerLabel
                                 anchors.centerIn: parent
                                 anchors.verticalCenterOffset: topMenu.tabLabelVOffset
-                                text: "Timer"
+                                text: "Media"
                                 color: panel.pageIndex === 2 ? Services.Theme.text : Services.Theme.subtext
                                 font.pixelSize: 13
                                 font.family: "JetBrains Mono"
@@ -411,12 +410,12 @@ PanelWindow {
                             }
                         }
 
-                        // -------- Timer --------
+                        // -------- Media --------
                         Item {
                             width: pageViewport.width
                             height: pageViewport.height
 
-                            TimerWidget {
+                            MediaPlayerWidget {
                                 anchors.fill: parent
                             }
                         }

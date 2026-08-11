@@ -8,6 +8,7 @@ Item {
     property string albumArtist: ""
     property string artUrl: ""
     property string albumTitle: "No Media"
+    property string playbackStatus: "Stopped"
 
     property int positionSec: 0
     property int lengthSec: 0
@@ -118,6 +119,31 @@ Item {
                 let val = parseFloat(text.trim())
                 if (!isNaN(val))
                     root.lengthSec = val / 1000000
+            }
+        }
+    }
+
+    Timer {
+        interval: 1000
+        running: true
+        repeat: true
+        onTriggered: statusProc.running = true
+    }
+    
+    Process {
+        id: statusProc
+        command: ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "status"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var lines = text.trim().split("\n")
+                var isPlaying = false
+                for (var i = 0; i < lines.length; i++) {
+                    if (lines[i].trim() === "Playing") {
+                        isPlaying = true
+                        break
+                    }
+                }
+                root.playbackStatus = isPlaying ? "Playing" : (lines.length > 0 && lines[0] !== "" ? lines[0].trim() : "Stopped")
             }
         }
     }

@@ -123,23 +123,96 @@ Rectangle {
         anchors.centerIn: parent
         spacing: 6
 
-        Rectangle {
-            id: reminderDot
-            width: 8
-            height: 8
-            radius: 4
-            color: Services.Theme.isDark ? "#f38ba8" : "#d32f2f" // Pastel red
-            anchors.verticalCenter: parent.verticalCenter
-            visible: root.hasPendingReminder
+        // 1) Date/Time Container
+        Item {
+            id: timeWrapper
+            property bool active: Services.Mpris.playbackStatus !== "Playing"
+            width: active ? timeContainer.implicitWidth : 0
+            height: timeContainer.implicitHeight
+            opacity: active ? 1.0 : 0.0
+            visible: opacity > 0
+            clip: true
+            
+            Behavior on width { NumberAnimation { duration: 350; easing.type: Easing.InOutCubic } }
+            Behavior on opacity { NumberAnimation { duration: 350; easing.type: Easing.InOutCubic } }
+
+            Row {
+                id: timeContainer
+                spacing: 6
+                
+                Rectangle {
+                    id: reminderDot
+                    width: 8
+                    height: 8
+                    radius: 4
+                    color: Services.Theme.isDark ? "#f38ba8" : "#d32f2f" // Pastel red
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: root.hasPendingReminder
+                }
+
+                Text {
+                    id: timeText
+                    color: Services.Theme.text
+                    font.pixelSize: 13
+                    font.family: "JetBrains Mono"
+                    font.weight: 800
+                    text: root.currentTime
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+            }
         }
 
-        Text {
-            id: timeText
-            color: Services.Theme.text
-            font.pixelSize: 13
-            font.family: "JetBrains Mono"
-            font.weight: 800
-            text: root.currentTime
+        // 2) Mini Media Player Container
+        Item {
+            id: mediaWrapper
+            property bool active: Services.Mpris.playbackStatus === "Playing"
+            width: active ? mediaContainer.implicitWidth : 0
+            height: mediaContainer.implicitHeight
+            opacity: active ? 1.0 : 0.0
+            visible: opacity > 0
+            clip: true
+            
+            Behavior on width { NumberAnimation { duration: 350; easing.type: Easing.InOutCubic } }
+            Behavior on opacity { NumberAnimation { duration: 350; easing.type: Easing.InOutCubic } }
+
+            Row {
+                id: mediaContainer
+                spacing: 8
+                
+                Text {
+                    text: ""
+                    font.family: "JetBrainsMono Nerd Font"
+                    font.pixelSize: 14
+                    color: Services.Theme.primary
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+
+                Text {
+                    text: Services.Mpris.albumTitle
+                    color: Services.Theme.text
+                    font.pixelSize: 13
+                    font.family: "JetBrains Mono"
+                    font.weight: 700
+                    maximumLineCount: 1
+                    elide: Text.ElideRight
+                    width: Math.min(implicitWidth, 120) // Cap text width
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+
+                Text {
+                    text: "󰏤" // Pause icon
+                    font.family: "JetBrainsMono Nerd Font"
+                    font.pixelSize: 16
+                    color: Services.Theme.text
+                    anchors.verticalCenter: parent.verticalCenter
+                    
+                    MouseArea {
+                        anchors.fill: parent
+                        anchors.margins: -4
+                        onClicked: Services.Mpris.playPause()
+                    }
+                }
+            }
         }
     }
 

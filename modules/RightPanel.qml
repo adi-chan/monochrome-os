@@ -259,6 +259,7 @@ PopupWindow {
 
             // ===== MAIN CONTROL CENTER LAYOUT =====
             RowLayout {
+                layoutDirection: Qt.RightToLeft
                 anchors.fill: parent
                 anchors.margins: 12
                 spacing: 12
@@ -332,6 +333,7 @@ PopupWindow {
                 // RIGHT DYNAMIC CONTENT AREA
                 // ==========================================
                 ColumnLayout {
+                    layoutDirection: Qt.LeftToRight
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     spacing: 10
@@ -420,6 +422,10 @@ PopupWindow {
                                 text: Services.Network.wifiEnabled ? (Services.Network.connected ? ("Connected: " + Services.Network.ssid) : "Disconnected") : "Wireless Off"
                                 font.pixelSize: 12
                                 color: Services.Theme.subtext
+                            }
+
+                            NetworkSpeed {
+                                visible: Services.Network.wifiEnabled
                             }
 
                             Rectangle {
