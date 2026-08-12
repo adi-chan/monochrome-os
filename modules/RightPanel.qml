@@ -424,9 +424,6 @@ PopupWindow {
                                 color: Services.Theme.subtext
                             }
 
-                            NetworkSpeed {
-                                visible: Services.Network.wifiEnabled
-                            }
 
                             Rectangle {
                                 Layout.fillWidth: true

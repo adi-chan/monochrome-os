@@ -11,7 +11,7 @@ Rectangle {
     radius: height / 2
     color: Services.Theme.bgSolid
     antialiasing: true
-    implicitWidth: row.implicitWidth + 12
+    implicitWidth: row.implicitWidth + 16
 
     property bool hovered: false
     property bool pressed: false

@@ -138,7 +138,7 @@ Item {
 
                         onEntered: wsBox.hovered = true
                         onExited: wsBox.hovered = false
-                        onClicked: Hyprland.dispatch("workspace " + wsBox.wid)
+                        onClicked: Hyprland.dispatch("hl.dsp.focus({ workspace = " + wsBox.wid + " })")
                     }
                 }
             }

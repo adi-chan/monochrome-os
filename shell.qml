@@ -38,6 +38,9 @@ ShellRoot {
     // Hot-Edge volume/brightness panel
     EdgeMixer {}
 
+    // Volume / Brightness On-Screen Display (OSD)
+    Osd {}
+
     // Notification Toasts
     Variants {
         model: Quickshell.screens
