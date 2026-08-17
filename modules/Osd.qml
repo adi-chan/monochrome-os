@@ -19,6 +19,7 @@ PanelWindow {
 
     color: "transparent"
     exclusiveZone: -1 // Overlay window, does not push workspace layout
+    mask: Region {} // Ignore all pointer events (click-through)
 
     implicitWidth: 340
     implicitHeight: 50

@@ -53,13 +53,13 @@ Item {
     property bool detailsOpen: false
     property var onOpen: function() { detailsOpen = !detailsOpen }
 
-    Process { id: playPauseProc; command: ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "play-pause"] }
-    Process { id: prevProc; command: ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "previous"] }
-    Process { id: nextProc; command: ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "next"] }
+    Process { id: playPauseProc; command: Services.Mpris.playerArgs.concat(["play-pause"]) }
+    Process { id: prevProc; command: Services.Mpris.playerArgs.concat(["previous"]) }
+    Process { id: nextProc; command: Services.Mpris.playerArgs.concat(["next"]) }
 
     Process {
         id: statusProc
-        command: ["bash", "-lc", "playerctl --ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera status 2>/dev/null || echo Stopped"]
+        command: ["bash", "-lc", Services.Mpris.playerArgs.join(" ") + " status 2>/dev/null || echo Stopped"]
         stdout: StdioCollector {
             onStreamFinished: root.isPlaying = (text.trim() === "Playing")
         }
@@ -67,7 +67,7 @@ Item {
 
     Process {
         id: timeProc
-        command: ["bash", "-c", "playerctl --ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera metadata --format '{{ duration(position) }}' 2>/dev/null || echo ''"]
+        command: ["bash", "-c", Services.Mpris.playerArgs.join(" ") + " metadata --format '{{ duration(position) }}' 2>/dev/null || echo ''"]
         stdout: StdioCollector {
             onStreamFinished: {
                 let t = text.trim();

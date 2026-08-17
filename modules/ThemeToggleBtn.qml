@@ -30,6 +30,8 @@ Rectangle {
 
     MouseArea {
         anchors.fill: parent
+        anchors.topMargin: -10
+        anchors.bottomMargin: -10
         hoverEnabled: true
         onEntered: root.hovered = true
         onExited: root.hovered = false

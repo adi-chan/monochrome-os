@@ -58,6 +58,8 @@ Item {
         MouseArea {
             id: area
             anchors.fill: parent
+            anchors.topMargin: -10
+            anchors.bottomMargin: -10
             hoverEnabled: true
             onClicked: {
                 root.open = !root.open

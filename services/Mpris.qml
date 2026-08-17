@@ -12,6 +12,40 @@ Item {
 
     property int positionSec: 0
     property int lengthSec: 0
+    
+    property string currentPlayer: ""
+    property var availablePlayers: []
+    property var playerArgs: {
+        let args = ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera"]
+        if (currentPlayer !== "") {
+            args.push("-p")
+            args.push(currentPlayer)
+        }
+        return args
+    }
+
+    Timer {
+        interval: 2000
+        running: true
+        repeat: true
+        onTriggered: playersProc.running = true
+    }
+
+    Process {
+        id: playersProc
+        command: ["bash", "-c", "playerctl -l 2>/dev/null | grep -vE 'zen|firefox|chromium|chrome|brave|vivaldi|edge|opera' || true"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let lines = text.trim().split("\n").filter(Boolean)
+                root.availablePlayers = lines
+                if (lines.length > 0 && (!root.currentPlayer || !lines.includes(root.currentPlayer))) {
+                    root.currentPlayer = lines[0]
+                } else if (lines.length === 0) {
+                    root.currentPlayer = ""
+                }
+            }
+        }
+    }
 
     function formatTime(seconds) {
         const m = Math.floor(seconds / 60)
@@ -53,7 +87,7 @@ Item {
 
     Process {
         id: artProc
-        command: ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "metadata", "mpris:artUrl"]
+        command: root.playerArgs.concat(["metadata", "mpris:artUrl"])
         stdout: StdioCollector {
             onStreamFinished: {
                 // sanitize output (remove newlines/spaces)
@@ -66,7 +100,7 @@ Item {
 
     Process {
         id: artistProc
-        command: ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "metadata", "xesam:artist"]
+        command: root.playerArgs.concat(["metadata", "xesam:artist"])
         stdout: StdioCollector {
             onStreamFinished: {
                 var cleanedArtist = text.trim()
@@ -79,7 +113,7 @@ Item {
 
     Process {
         id: titleProc
-        command: ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "metadata", "xesam:title"]
+        command: root.playerArgs.concat(["metadata", "xesam:title"])
         stdout: StdioCollector {
             onStreamFinished: {
                 var cleanedtitle = text.trim()
@@ -94,7 +128,7 @@ Item {
 
     Process {
         id: posProcess
-        command: ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "position"]
+        command: root.playerArgs.concat(["position"])
         stdout: StdioCollector {
             onStreamFinished: {
                 let val = parseFloat(text.trim())
@@ -104,16 +138,22 @@ Item {
         }
     }
     
-    Process { id: playPauseProc; command: ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "play-pause"] }
+    Process { id: playPauseProc; command: root.playerArgs.concat(["play-pause"]) }
         function playPause() {
             playPauseProc.running = false
             playPauseProc.running = true
     }
 
+    Process { id: pauseCurrentProc; command: root.playerArgs.concat(["pause"]) }
+    function pauseCurrent() {
+        pauseCurrentProc.running = false
+        pauseCurrentProc.running = true
+    }
+
 
     Process {
         id: lenProcess
-        command: ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "metadata", "mpris:length"]
+        command: root.playerArgs.concat(["metadata", "mpris:length"])
         stdout: StdioCollector {
             onStreamFinished: {
                 let val = parseFloat(text.trim())
@@ -132,7 +172,7 @@ Item {
     
     Process {
         id: statusProc
-        command: ["playerctl", "--ignore-player=zen,firefox,chromium,chrome,brave,vivaldi,edge,opera", "status"]
+        command: root.playerArgs.concat(["status"])
         stdout: StdioCollector {
             onStreamFinished: {
                 var lines = text.trim().split("\n")
