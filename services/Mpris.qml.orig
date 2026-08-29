@@ -24,31 +24,11 @@ Item {
         return args
     }
 
-    function runProc(p) {
-        if (p) {
-            p.running = false
-            p.running = true
-        }
-    }
-
-    function refreshAll() {
-        runProc(artProc)
-        runProc(artistProc)
-        runProc(titleProc)
-        runProc(posProcess)
-        runProc(lenProcess)
-        runProc(statusProc)
-    }
-
-    onCurrentPlayerChanged: {
-        refreshAll()
-    }
-
     Timer {
         interval: 2000
         running: true
         repeat: true
-        onTriggered: root.runProc(playersProc)
+        onTriggered: playersProc.running = true
     }
 
     Process {
@@ -58,18 +38,10 @@ Item {
             onStreamFinished: {
                 let lines = text.trim().split("\n").filter(Boolean)
                 root.availablePlayers = lines
-                
-                let isCurrentValid = root.currentPlayer !== "" && lines.some(p => p === root.currentPlayer || p.toLowerCase().includes(root.currentPlayer.toLowerCase()) || root.currentPlayer.toLowerCase().includes(p.toLowerCase()))
-                
-                if (!isCurrentValid) {
-                    let mpdPlayer = lines.find(p => p.toLowerCase().includes("mpd"))
-                    if (mpdPlayer) {
-                        root.currentPlayer = mpdPlayer
-                    } else if (lines.length > 0) {
-                        root.currentPlayer = lines[0]
-                    } else {
-                        root.currentPlayer = ""
-                    }
+                if (lines.length > 0 && (!root.currentPlayer || !lines.includes(root.currentPlayer))) {
+                    root.currentPlayer = lines[0]
+                } else if (lines.length === 0) {
+                    root.currentPlayer = ""
                 }
             }
         }
@@ -85,7 +57,32 @@ Item {
         interval: 1000
         running: true
         repeat: true
-        onTriggered: root.refreshAll()
+        onTriggered: artProc.running = true
+    }
+
+    Timer {
+        interval: 1000
+        running: true
+        repeat: true
+
+        onTriggered: {
+            posProcess.running = true
+            lenProcess.running = true
+        }
+    }
+
+    Timer {
+        interval: 1000
+        running: true
+        repeat: true
+        onTriggered: artistProc.running = true
+    }
+
+    Timer {
+        interval: 1000
+        running: true
+        repeat: true
+        onTriggered: titleProc.running = true
     }
 
     Process {
@@ -93,6 +90,7 @@ Item {
         command: root.playerArgs.concat(["metadata", "mpris:artUrl"])
         stdout: StdioCollector {
             onStreamFinished: {
+                // sanitize output (remove newlines/spaces)
                 var cleanUrl = text.trim()
                 if (cleanUrl !== root.artUrl)
                     root.artUrl = cleanUrl
@@ -107,7 +105,7 @@ Item {
             onStreamFinished: {
                 var cleanedArtist = text.trim()
                 if (cleanedArtist !== "")
-                    root.albumArtist = cleanedArtist
+                root.albumArtist = cleanedArtist
                 else root.albumArtist = "No Artist"
             }
         }
@@ -120,8 +118,10 @@ Item {
             onStreamFinished: {
                 var cleanedtitle = text.trim()
                 if (cleanedtitle !== "")
-                    root.albumTitle = cleanedtitle
+                root.albumTitle = cleanedtitle
                 else root.albumTitle = "No Media"
+
+
             }
         }
     }
@@ -140,13 +140,24 @@ Item {
     
     Process { id: playPauseProc; command: root.playerArgs.concat(["play-pause"]) }
     function playPause() {
-        runProc(playPauseProc)
+        playPauseProc.running = false
+        playPauseProc.running = true
     }
 
-    Process { id: pauseCurrentProc; command: root.playerArgs.concat(["pause"]) }
-    function pauseCurrent() {
-        runProc(pauseCurrentProc)
+    Process { id: specificPauseProc }
+    function pausePlayer(playerName) {
+        specificPauseProc.command = ["playerctl", "-p", playerName, "pause"]
+        specificPauseProc.running = false
+        specificPauseProc.running = true
     }
+
+    Process { id: specificPlayProc }
+    function playPlayer(playerName) {
+        specificPlayProc.command = ["playerctl", "-p", playerName, "play"]
+        specificPlayProc.running = false
+        specificPlayProc.running = true
+    }
+
 
     Process {
         id: lenProcess
@@ -160,6 +171,13 @@ Item {
         }
     }
 
+    Timer {
+        interval: 1000
+        running: true
+        repeat: true
+        onTriggered: statusProc.running = true
+    }
+    
     Process {
         id: statusProc
         command: root.playerArgs.concat(["status"])

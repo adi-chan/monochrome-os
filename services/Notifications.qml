@@ -42,7 +42,7 @@ Item {
 
     Process {
         id: playSoundProc
-        command: ["pw-play", "/home/nick/.config/quickshell/assets/notif.mp3"]
+        command: ["bash", "-c", "pw-play \"$HOME/.config/quickshell/assets/notif.mp3\""]
         running: false
     }
 

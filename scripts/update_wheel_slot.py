@@ -12,7 +12,8 @@ def main():
     exec_cmd = sys.argv[3]
     icon = sys.argv[4]
     
-    file_path = "/home/nick/.config/quickshell/assets/wheel.json"
+    import os
+    file_path = os.path.expanduser("~/.config/quickshell/assets/wheel.json")
     
     try:
         with open(file_path, 'r') as f:

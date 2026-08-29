@@ -289,7 +289,8 @@ PanelWindow {
                                 spacing: 12
 
                                 ColumnLayout {
-                                    Layout.preferredWidth: 320
+                                    Layout.fillWidth: true
+                                    Layout.preferredWidth: 0
                                     Layout.fillHeight: true
 
                                     Calendar {
@@ -302,6 +303,7 @@ PanelWindow {
 
                                 Item {
                                     Layout.fillWidth: true
+                                    Layout.preferredWidth: 0
                                     Layout.fillHeight: true
 
                                     Reminders {
@@ -313,25 +315,14 @@ PanelWindow {
                                 }
 
                                 ColumnLayout {
-                                    Layout.preferredWidth: 260
+                                    Layout.fillWidth: true
+                                    Layout.preferredWidth: 0
                                     Layout.fillHeight: true
                                     spacing: 12
 
-                                    Rectangle {
+                                    KdeConnectCard {
                                         Layout.fillWidth: true
-                                        Layout.preferredHeight: 180
-                                        radius: 12
-                                        color: Services.Theme.bg
-                                        border.color: Services.Theme.border
-                                        border.width: 1
-
-                                        AnimatedImage {
-                                            anchors.fill: parent
-                                            anchors.margins: 8
-                                            source: "file:///home/nick/.config/quickshell/assets/point.gif"
-                                            fillMode: Image.PreserveAspectFit
-                                            playing: true
-                                        }
+                                        Layout.preferredHeight: 220
                                     }
 
                                     Rectangle {

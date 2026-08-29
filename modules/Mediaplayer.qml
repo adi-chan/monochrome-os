@@ -32,7 +32,7 @@ Item {
     Process {
         id: cavaProc
         running: root.isPlaying
-        command: ["cava", "-p", "/home/nick/.config/quickshell/cava.conf"]
+        command: ["bash", "-c", "cava -p \"$HOME/.config/quickshell/cava.conf\""]
         stdout: SplitParser {
             splitMarker: "\n"
             onRead: data => {

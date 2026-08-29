@@ -17,16 +17,60 @@ Item {
     property bool shuffleMode: false
     property string loopMode: "None"
 
+    property bool presenceActive: false
+
+    Process {
+        id: presenceCheckProc
+        command: ["pgrep", "-f", "musicpresence"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                root.presenceActive = text.trim().length > 0
+            }
+        }
+    }
+
+    Process {
+        id: presenceStartProc
+        command: ["bash", "-c", "$HOME/tools/musicpresence-2.3.6-linux-x86_64.AppImage &"]
+        onExited: {
+            presenceCheckProc.running = false
+            presenceCheckProc.running = true
+        }
+    }
+
+    Process {
+        id: presenceStopProc
+        command: ["pkill", "-f", "musicpresence"]
+        onExited: {
+            presenceCheckProc.running = false
+            presenceCheckProc.running = true
+        }
+    }
+
+    Timer {
+        id: presenceCheckTimer
+        interval: 3000
+        repeat: true
+        running: true
+        triggeredOnStart: true
+        onTriggered: {
+            presenceCheckProc.running = false
+            presenceCheckProc.running = true
+        }
+    }
+
+
+
+    MediaQueuePopup {
+        id: mediaQueuePopup
+        onPlaylistLoaded: root.shuffleMode = false
+    }
+
+    Component.onCompleted: {
+    }
+
     Process {
         id: shuffleSetProc
-        onExited: { shuffleGetProc.running = false; shuffleGetProc.running = true }
-    }
-    Process {
-        id: shuffleGetProc
-        command: ["bash", "-lc", Services.Mpris.playerArgs.join(" ") + " shuffle 2>/dev/null || echo Off"]
-        stdout: StdioCollector {
-            onStreamFinished: { root.shuffleMode = (text.trim() === "On") }
-        }
     }
     
     Process {
@@ -52,7 +96,6 @@ Item {
         running: true
         triggeredOnStart: true
         onTriggered: { 
-            shuffleGetProc.running = false; shuffleGetProc.running = true 
             loopGetProc.running = false; loopGetProc.running = true 
             
             let d = new Date()
@@ -67,10 +110,10 @@ Item {
     }
 
     function toggleShuffle() {
-        const next = shuffleMode ? "Off" : "On"
-        shuffleSetProc.command = Services.Mpris.playerArgs.concat(["shuffle", next])
+        shuffleSetProc.command = ["bash", "-c", "mpc random off; mpc shuffle"]
         shuffleSetProc.running = false
         shuffleSetProc.running = true
+        root.shuffleMode = true
     }
 
     function cycleLoop() {
@@ -164,7 +207,7 @@ Item {
                 Image {
                     id: mainArt
                     anchors.fill: parent
-                    source: root.artUrl !== "" ? root.artUrl : "file:///home/nick/.config/quickshell/assets/music_fallback.svg"
+                    source: root.artUrl !== "" ? root.artUrl : Qt.resolvedUrl("../../assets/music_fallback.svg")
                     fillMode: Image.PreserveAspectCrop
                     asynchronous: true
                     opacity: artHover.containsMouse ? 0.05 : 1.0
@@ -310,111 +353,44 @@ Item {
                         }
                     }
                     
-                    Rectangle {
-                        id: appSwitcherPill
-                        height: 28
-                        width: Math.max(110, appSwitcherText.implicitWidth + 40)
-                        radius: 14
-                        color: pillMouse.containsMouse ? Services.Theme.highlight : Services.Theme.bgSolid
-                        border.color: Services.Theme.border
-                        border.width: 1
-                        Behavior on color { ColorAnimation { duration: 120 } }
-                        
-                        RowLayout {
-                            anchors.centerIn: parent
-                            spacing: 8
-                            Text {
-                                text: {
-                                    let c = Services.Mpris.currentPlayer.toLowerCase()
-                                    if (c.includes("spotify")) return ""
-                                    if (c.includes("feishin")) return "󰎆"
-                                    if (c.includes("mpv")) return ""
-                                    if (c.includes("vlc")) return "󰕼"
-                                    if (c.includes("firefox") || c.includes("librewolf")) return ""
-                                    return ""
-                                }
-                                font.family: "JetBrainsMono Nerd Font"
-                                font.pixelSize: 14
-                                color: {
-                                    let c = Services.Mpris.currentPlayer.toLowerCase()
-                                    if (c.includes("spotify")) return "#1DB954"
-                                    return Services.Theme.text
-                                }
-                            }
-                            Text {
-                                id: appSwitcherText
-                                text: Services.Mpris.currentPlayer !== "" ? (Services.Mpris.currentPlayer.charAt(0).toUpperCase() + Services.Mpris.currentPlayer.slice(1).split('.')[0]) : "No Player"
-                                font.family: "JetBrains Mono"
-                                font.pixelSize: 12
-                                font.weight: 600
-                                color: Services.Theme.text
-                            }
-                        }
-                        
-                        MouseArea {
-                            id: pillMouse
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            hoverEnabled: true
-                            onClicked: {
-                                appMenu.visible = !appMenu.visible
-                            }
-                        }
-                        
-                        Rectangle {
-                            id: appMenu
-                            visible: false
-                            y: appSwitcherPill.height + 4
-                            width: Math.max(120, parent.width)
-                            height: contentCol.implicitHeight + 8
-                            radius: 12
-                            color: Services.Theme.bgSolid
-                            border.color: Services.Theme.border
-                            border.width: 1
-                            z: 100
-                            
-                            layer.enabled: true
-                            layer.effect: MultiEffect {
-                                shadowEnabled: true
-                                shadowOpacity: 0.3
-                                shadowBlur: 10
-                            }
+                    RowLayout {
+                        spacing: 8
+                        Layout.alignment: Qt.AlignVCenter
+                        z: 1000
 
-                            ColumnLayout {
-                                id: contentCol
+
+
+                        // Discord / Music Presence Toggle Button
+                        Rectangle {
+                            id: presencePill
+                            height: 28
+                            width: 36
+                            radius: 14
+                            color: presenceMouse.containsMouse ? Services.Theme.highlight : (root.presenceActive ? Qt.alpha(Services.Theme.primary, 0.2) : Services.Theme.bgSolid)
+                            border.color: root.presenceActive ? Services.Theme.primary : Services.Theme.border
+                            border.width: 1
+                            Behavior on color { ColorAnimation { duration: 120 } }
+                            
+                            Text {
+                                anchors.centerIn: parent
+                                text: "󰙯"
+                                font.family: "JetBrainsMono Nerd Font"
+                                font.pixelSize: 15
+                                color: root.presenceActive ? Services.Theme.primary : Services.Theme.subtext
+                            }
+                            
+                            MouseArea {
+                                id: presenceMouse
                                 anchors.fill: parent
-                                anchors.margins: 4
-                                spacing: 2
-                                
-                                Repeater {
-                                    model: Services.Mpris.availablePlayers
-                                    delegate: Rectangle {
-                                        Layout.fillWidth: true
-                                        height: 28
-                                        radius: 8
-                                        color: delMouse.containsMouse ? Services.Theme.highlight : "transparent"
-                                        
-                                        Text {
-                                            anchors.verticalCenter: parent.verticalCenter
-                                            anchors.left: parent.left
-                                            anchors.leftMargin: 12
-                                            text: modelData.charAt(0).toUpperCase() + modelData.slice(1).split('.')[0]
-                                            font.family: "JetBrains Mono"
-                                            font.pixelSize: 12
-                                            color: Services.Theme.text
-                                        }
-                                        MouseArea {
-                                            id: delMouse
-                                            anchors.fill: parent
-                                            hoverEnabled: true
-                                            onClicked: {
-                                                if (Services.Mpris.currentPlayer !== modelData && Services.Mpris.currentPlayer !== "") {
-                                                    Services.Mpris.pauseCurrent()
-                                                }
-                                                Services.Mpris.currentPlayer = modelData
-                                                appMenu.visible = false
-                                            }
-                                        }
+                                cursorShape: Qt.PointingHandCursor
+                                hoverEnabled: true
+                                onClicked: {
+                                    if (root.presenceActive) {
+                                        presenceStopProc.running = false
+                                        presenceStopProc.running = true
+                                    } else {
+                                        presenceStartProc.running = false
+                                        presenceStartProc.running = true
                                     }
                                 }
                             }
@@ -501,13 +477,32 @@ Item {
                         border.width: root.shuffleMode ? 1 : 0
                         Text { 
                             anchors.centerIn: parent
-                            text: "󰒎"
+                            text: ""
                             font.family: "JetBrainsMono Nerd Font"
                             font.pixelSize: 18
                             color: root.shuffleMode ? Services.Theme.primary : Services.Theme.text
                             opacity: root.shuffleMode ? 1.0 : 0.45
+                            Behavior on color { ColorAnimation { duration: 150 } }
                         }
                         MouseArea { id: shuffleMouse; anchors.fill: parent; hoverEnabled: true; onClicked: root.toggleShuffle() }
+                    }
+
+                    // Loop Button
+                    Rectangle {
+                        width: 48; height: 48; radius: 24
+                        color: loopMouse.containsMouse ? Services.Theme.highlight : "transparent"
+                        border.color: Services.Theme.border
+                        border.width: root.loopMode !== "None" ? 1 : 0
+                        Text { 
+                            anchors.centerIn: parent
+                            text: root.loopMode === "Track" ? "󰑘" : "󰑖"
+                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 18
+                            color: root.loopMode !== "None" ? Services.Theme.primary : Services.Theme.text
+                            opacity: root.loopMode !== "None" ? 1.0 : 0.45
+                            Behavior on color { ColorAnimation { duration: 150 } }
+                        }
+                        MouseArea { id: loopMouse; anchors.fill: parent; hoverEnabled: true; onClicked: root.cycleLoop() }
                     }
 
                     // Previous Button
@@ -558,26 +553,63 @@ Item {
                         MouseArea { id: nextMouse; anchors.fill: parent; hoverEnabled: true; onClicked: { nextProc.running = false; nextProc.running = true } }
                     }
 
-                    // Loop Button
+                    // Queue Button
                     Rectangle {
                         width: 48; height: 48; radius: 24
-                        color: loopMouse.containsMouse ? Services.Theme.highlight : "transparent"
-                        border.color: Services.Theme.border
-                        border.width: root.loopMode !== "None" ? 1 : 0
+                        color: queueMouse.containsMouse ? Services.Theme.highlight : "transparent"
                         Text { 
                             anchors.centerIn: parent
-                            text: root.loopMode === "Track" ? "󰑘" : "󰑖"
+                            text: "󰲹"
                             font.family: "JetBrainsMono Nerd Font"
                             font.pixelSize: 18
-                            color: root.loopMode !== "None" ? Services.Theme.primary : Services.Theme.text
-                            opacity: root.loopMode !== "None" ? 1.0 : 0.45
+                            color: (mediaQueuePopup.visible && mediaQueuePopup.showingQueue) ? Services.Theme.primary : Services.Theme.text
+                            Behavior on color { ColorAnimation { duration: 150 } }
                         }
-                        MouseArea { id: loopMouse; anchors.fill: parent; hoverEnabled: true; onClicked: root.cycleLoop() }
+                        MouseArea { 
+                            id: queueMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            onClicked: {
+                                if (mediaQueuePopup.visible && mediaQueuePopup.showingQueue) {
+                                    mediaQueuePopup.visible = false
+                                } else {
+                                    mediaQueuePopup.showQueue()
+                                }
+                            }
+                        }
+                    }
+
+                    // Library Button
+                    Rectangle {
+                        width: 48; height: 48; radius: 24
+                        color: libMouse.containsMouse ? Services.Theme.highlight : "transparent"
+                        Text { 
+                            anchors.centerIn: parent
+                            text: "󰕮"
+                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 18
+                            color: (mediaQueuePopup.visible && !mediaQueuePopup.showingQueue) ? Services.Theme.primary : Services.Theme.text
+                            Behavior on color { ColorAnimation { duration: 150 } }
+                        }
+                        MouseArea { 
+                            id: libMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            onClicked: {
+                                if (mediaQueuePopup.visible && !mediaQueuePopup.showingQueue) {
+                                    mediaQueuePopup.visible = false
+                                } else {
+                                    mediaQueuePopup.showLibrary()
+                                }
+                            }
+                        }
                     }
                 }
 
                 Item { Layout.fillHeight: true } // Spacer
             }
         }
+
+    // Overlays extracted to MediaQueuePopup
     }
 }

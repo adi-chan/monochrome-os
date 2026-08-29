@@ -1,0 +1,15 @@
+--- /home/nick/.config/quickshell/services/Mpris.qml
++++ /home/nick/.config/quickshell/services/Mpris.qml
+@@ -143,6 +143,12 @@
+         playPauseProc.running = true
+     }
+ 
++    Process { id: pauseCurrentProc; command: root.playerArgs.concat(["pause"]) }
++    function pauseCurrent() {
++        pauseCurrentProc.running = false
++        pauseCurrentProc.running = true
++    }
++
+     Process { id: specificPauseProc }
+     function pausePlayer(playerName) {
+         specificPauseProc.command = ["playerctl", "-p", playerName, "pause"]

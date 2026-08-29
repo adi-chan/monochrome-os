@@ -71,7 +71,7 @@ PanelWindow {
 
     Process {
         id: updateAppsProc
-        command: ["python3", "/home/nick/.config/quickshell/scripts/update_apps.py"]
+        command: ["bash", "-c", "python3 \"$HOME/.config/quickshell/scripts/update_apps.py\""]
         onExited: {
             loadApps.running = false;
             loadApps.running = true;
@@ -112,7 +112,7 @@ PanelWindow {
 
     Process {
         id: loadApps
-        command: ["cat", "/home/nick/.config/quickshell/assets/apps.json"]
+        command: ["bash", "-c", "cat \"$HOME/.config/quickshell/assets/apps.json\""]
         stdout: StdioCollector {
             onStreamFinished: {
                 try {
@@ -225,7 +225,7 @@ PanelWindow {
                             if (appView.currentIndex >= 0 && appView.currentIndex < pop.filteredApps.length) {
                                 let app = pop.filteredApps[appView.currentIndex];
                                 if (pop.editSlotIndex !== -1) {
-                                    saveWheelSlotProc.command = ["python3", "/home/nick/.config/quickshell/scripts/update_wheel_slot.py", pop.editSlotIndex.toString(), app.name, app.exec, app.icon || ""];
+                                    saveWheelSlotProc.command = ["bash", "-c", "python3 \"$HOME/.config/quickshell/scripts/update_wheel_slot.py\" \"" + pop.editSlotIndex + "\" \"" + app.name.replace(/"/g, '\\"') + "\" \"" + app.exec.replace(/"/g, '\\"') + "\" \"" + (app.icon || "").replace(/"/g, '\\"') + "\""];
                                     saveWheelSlotProc.running = true;
                                 } else {
                                     launchProc.command = ["hyprctl", "dispatch", "hl.dsp.exec_cmd(\"" + app.exec.replace(/\\/g, "\\\\").replace(/"/g, "\\\"") + "\")"];
@@ -332,7 +332,7 @@ PanelWindow {
                             appView.currentIndex = index;
                             let app = modelData;
                             if (pop.editSlotIndex !== -1) {
-                                saveWheelSlotProc.command = ["python3", "/home/nick/.config/quickshell/scripts/update_wheel_slot.py", pop.editSlotIndex.toString(), app.name, app.exec, app.icon || ""];
+                                saveWheelSlotProc.command = ["bash", "-c", "python3 \"$HOME/.config/quickshell/scripts/update_wheel_slot.py\" \"" + pop.editSlotIndex + "\" \"" + app.name.replace(/"/g, '\\"') + "\" \"" + app.exec.replace(/"/g, '\\"') + "\" \"" + (app.icon || "").replace(/"/g, '\\"') + "\""];
                                 saveWheelSlotProc.running = true;
                             } else {
                                 launchProc.command = ["hyprctl", "dispatch", "hl.dsp.exec_cmd(\"" + app.exec.replace(/\\/g, "\\\\").replace(/"/g, "\\\"") + "\")"];

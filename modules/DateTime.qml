@@ -25,7 +25,7 @@ Rectangle {
     Process {
         id: cavaProc
         running: root.isPlaying
-        command: ["cava", "-p", "/home/nick/.config/quickshell/cava.conf"]
+        command: ["bash", "-c", "cava -p \"$HOME/.config/quickshell/cava.conf\""]
         stdout: SplitParser {
             splitMarker: "\n"
             onRead: data => {
@@ -280,13 +280,7 @@ Rectangle {
                 id: mediaContainer
                 spacing: 8
                 
-                Text {
-                    text: ""
-                    font.family: "JetBrainsMono Nerd Font"
-                    font.pixelSize: 14
-                    color: Services.Theme.primary
-                    anchors.verticalCenter: parent.verticalCenter
-                }
+
 
                 Item {
                     id: viewport

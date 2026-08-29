@@ -346,12 +346,14 @@ PanelWindow {
                                 spacing: 12
 
                                 ColumnLayout {
-                                    Layout.preferredWidth: 320
+                                    Layout.fillWidth: true
+                                    Layout.preferredWidth: 0
+                                    Layout.preferredHeight: 250
                                     Layout.alignment: Qt.AlignVCenter
 
                                     Calendar {
                                         Layout.fillWidth: true
-                                        Layout.preferredHeight: 250
+                                        Layout.fillHeight: true
                                         onDateClicked: (year, month, day) => {
                                             addReminderPopup.show(year, month, day)
                                         }
@@ -360,7 +362,7 @@ PanelWindow {
 
                                 Item {
                                     Layout.fillWidth: true
-                                    Layout.minimumWidth: 240
+                                    Layout.preferredWidth: 0
                                     Layout.preferredHeight: 250
                                     Layout.alignment: Qt.AlignVCenter
 
@@ -373,28 +375,14 @@ PanelWindow {
                                 }
 
                                 ColumnLayout {
-                                    Layout.maximumWidth: 300
-                                    Layout.preferredWidth: Math.min(300, dashGif.implicitWidth + 16)
+                                    Layout.fillWidth: true
+                                    Layout.preferredWidth: 0
                                     Layout.preferredHeight: 250
                                     Layout.alignment: Qt.AlignVCenter
-                                    spacing: 8
 
-                                    Rectangle {
+                                    KdeConnectCard {
                                         Layout.fillWidth: true
                                         Layout.fillHeight: true
-                                        radius: 12
-                                        color: Services.Theme.bg
-                                        border.color: Services.Theme.border
-                                        border.width: 1
-
-                                        AnimatedImage {
-                                            id: dashGif
-                                            anchors.fill: parent
-                                            anchors.margins: 8
-                                            source: panel.customGifPath === "" ? "file:///home/nick/.config/quickshell/assets/point.gif" : panel.customGifPath
-                                            fillMode: Image.PreserveAspectFit
-                                            playing: true
-                                        }
                                     }
                                 }
                             }
