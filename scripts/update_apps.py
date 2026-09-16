@@ -26,9 +26,14 @@ def get_apps():
                                 continue
                             
                             name = entry.get('Name', '')
+                            name_lower = name.lower()
                             categories = entry.get('Categories', '')
                             is_terminal = entry.get('Terminal', 'false').lower() == 'true'
-                            if any(x in categories for x in ['Settings', 'System', 'Utility', 'ConsoleOnly']) and 'bluetooth' not in name.lower():
+
+                            # Keep audio, volume, mixer, and bluetooth apps even if categorized as Settings/Utility
+                            is_audio_or_settings_exception = any(k in name_lower for k in ['volume', 'pavucontrol', 'mixer', 'sound', 'audio control', 'bluetooth'])
+
+                            if any(x in categories for x in ['Settings', 'System', 'Utility', 'ConsoleOnly']) and not is_audio_or_settings_exception:
                                 # Allow some exceptions if needed, but filter out most junk
                                 if 'System' in categories and 'Emulator' not in categories and 'FileManager' not in categories:
                                     continue
@@ -36,8 +41,10 @@ def get_apps():
                                     continue
                                 if 'Settings' in categories:
                                     continue
+
                             if not name or 'Avahi' in name or 'Hardware Locality' in name:
                                 continue
+
                             exec_cmd = entry.get('Exec', '').split('%')[0].strip()
                             if not exec_cmd:
                                 continue
