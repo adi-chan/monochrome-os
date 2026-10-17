@@ -2,6 +2,7 @@
 
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import qs.bar
 import qs.bar.placeholders
 import qs.services
@@ -61,4 +62,20 @@ ShellRoot {
 
     // Welcome / Reminders Screen
     Welcome {}
+
+    // Am I Cooked? Laptop Diagnostics Dashboard Panel
+    AmICookedPanel {}
+
+    // IPC Handler for keyboard shortcut triggering: quickshell ipc call am-i-cooked toggle
+    IpcHandler {
+        target: "am-i-cooked"
+
+        function toggle() {
+            AmICookedService.toggle()
+        }
+
+        function refresh() {
+            AmICookedService.refresh()
+        }
+    }
 }
